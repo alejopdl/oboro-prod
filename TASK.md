@@ -9,9 +9,11 @@
 - [x] Set up Tailwind CSS
 - [x] Configure ESLint and Prettier
 - [x] Create basic folder structure
-- [ ] Set up environment variables
-- [ ] Create Notion database schema
-- [ ] Implement Notion API integration
+- [x] Set up environment variables
+- [x] Create Notion database schema
+- [x] Implement Notion API integration
+- [x] Create ProductCard component
+- [x] Create ProductGrid component
 
 ## Milestones
 
