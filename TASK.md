@@ -36,6 +36,20 @@
   - [x] Create component documentation
   - [x] Organize diagrams in /docs folder
 
+### Sprint 3: Core Application Development (Added 2025-04-22)
+
+- [x] Implement Navbar and Footer components
+  - [x] Add theme toggle functionality
+  - [x] Ensure proper responsive design
+  - [x] Create component tests
+- [x] Solve Next.js hydration issues
+  - [x] Create ClientOnly component wrapper
+  - [x] Fix client-side animations in SSR context
+  - [x] Ensure all tests pass with hydration fixes
+- [ ] Create Homepage with featured products
+- [ ] Implement Products listing page
+- [ ] Create dynamic Product detail page
+
 ## Milestones
 
 ### Milestone 1: Project Setup and Notion Integration
@@ -73,13 +87,13 @@
 - [ ] Add caching strategy for Notion data
 
 ### UI Components
-- [ ] Design and implement Navbar component
-- [ ] Design and implement Footer component
+- [x] Design and implement Navbar component
+- [x] Design and implement Footer component
 - [x] Create ProductCard component
 - [x] Create ProductGrid component
 - [ ] Design and implement ProductDetail component
 - [ ] Create Loading and Error state components
-- [ ] Implement theme toggle (dark/light mode)
+- [x] Implement theme toggle (dark/light mode)
 
 ### Pages
 - [ ] Create Homepage with featured products
@@ -140,6 +154,7 @@
 - [x] Write unit tests for utility functions
 - [ ] Add integration tests for API routes
 - [x] Implement end-to-end tests for critical user flows
+- [x] Create component tests for Navbar and Footer
 - [ ] Test performance with Lighthouse
 - [ ] Cross-browser testing
 
@@ -161,3 +176,7 @@
 - [x] Set up Tailwind CSS
 - [x] Configure ESLint and Prettier
 - [x] Create basic folder structure
+- [x] Design and implement Navbar component with theme toggle
+- [x] Design and implement Footer component
+- [x] Create ClientOnly component to fix hydration issues
+- [x] Create component tests for Navbar and Footer

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { default as Image } from 'next/image'
 import { default as Link } from 'next/link'
 import { motion } from 'framer-motion'
@@ -20,6 +20,12 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
   const { id, name, price, images, category, soldOut, size } = product
   const prefersReducedMotion = useReducedMotion()
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  
+  // Set mounted state after component mounts in browser
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Format price according to locale and currency
   const formattedPrice = new Intl.NumberFormat(config.locale, {
@@ -27,14 +33,19 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
     currency: config.currency,
   }).format(price)
 
-  // For test purpose - force the component to render properly in Jest
-  const MotionComponent = typeof window !== 'undefined' ? motion.div : 'div';
+  // Determine the right component to use based on mounting state
+  const MotionComponent = mounted ? motion.div : 'div';
 
   return (
     <MotionComponent
-      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: prefersReducedMotion ? 0.1 : 0.5 }}
+      {...(mounted 
+        ? {
+            initial: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
+            animate: { opacity: 1, y: 0 },
+            transition: { duration: prefersReducedMotion ? 0.1 : 0.5 }
+          } 
+        : {}
+      )}
       className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl"
     >
       <Link href={`/produto/${id}`} className="block">

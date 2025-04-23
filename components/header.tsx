@@ -11,9 +11,15 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 export default function Header() {
   const [showHelp, setShowHelp] = useState(false)
   const [windowWidth, setWindowWidth] = useState(0)
+  const [mounted, setMounted] = useState(false)
   const { scrollY, isScrolled } = useScroll()
   const { theme, setTheme } = useTheme()
   const prefersReducedMotion = useReducedMotion()
+
+  // Set mounted state after hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Listen for help toggle events
   useEffect(() => {
@@ -78,15 +84,20 @@ export default function Header() {
           animate={{ opacity: 1 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.3, duration: prefersReducedMotion ? 0 : 0.5 }}
         >
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-            className="rounded-full w-8 h-8 border-2"
-          >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
+          {mounted ? (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+              className="rounded-full w-8 h-8 border-2"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          ) : (
+            // Render a placeholder with the same dimensions until mounted
+            <div className="rounded-full w-8 h-8 border-2 flex items-center justify-center"></div>
+          )}
         </motion.div>
 
         <motion.h1

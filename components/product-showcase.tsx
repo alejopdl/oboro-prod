@@ -11,18 +11,46 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { Lock } from "lucide-react"
 import { preloadImages } from "@/services/image-service"
 
+/**
+ * Product showcase component that displays products in a visually appealing layout
+ * with animations, connectors between products, and lazy loading.
+ * 
+ * @param props - Component props
+ * @param props.products - Array of product objects to display
+ * @returns JSX Element - The product showcase component
+ */
 export default function ProductShowcase({ products }: { products: Product[] }) {
+  // Track which product is currently active based on scroll position
   const [activeIndex, setActiveIndex] = useState(0)
+  
+  // Keep track of which products are marked as sold
   const [soldProducts, setSoldProducts] = useState<Record<string, boolean>>({})
+  
+  // Store references to each product section for positioning connectors
   const productRefs = useRef<(HTMLDivElement | null)[]>([])
+  
+  // Get current scroll position from context
   const { scrollY } = useScroll()
+  
+  // Check if user prefers reduced motion
   const prefersReducedMotion = useReducedMotion()
+  
+  // Track if component is mounted (client-side only)
+  const [mounted, setMounted] = useState(false)
+  
+  // Set mounted state after component mounts
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Preload first product images
   useEffect(() => {
     if (products.length > 0) {
       // Preload first two products' images
-      const imagesToPreload = [...products[0].images, ...(products.length > 1 ? products[1].images : [])]
+      const imagesToPreload = [
+        ...products[0].images, 
+        ...(products.length > 1 ? products[1].images : [])
+      ]
       preloadImages(imagesToPreload)
     }
   }, [products])
@@ -46,15 +74,19 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
     }))
   }
 
+  // Update active product based on scroll position
   useEffect(() => {
+    // Skip during server-side rendering
+    if (typeof window === "undefined") return
+    
     const handleScroll = () => {
-      if (typeof window === "undefined") return
-
+      // Calculate center of viewport
       const scrollPosition = window.scrollY + window.innerHeight / 2
 
       let closestIndex = 0
       let closestDistance = Number.POSITIVE_INFINITY
 
+      // Find product closest to center of viewport
       productRefs.current.forEach((ref, index) => {
         if (ref) {
           const { top } = ref.getBoundingClientRect()
@@ -81,121 +113,136 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
     return soldProducts[previousProduct.id] || false
   }
 
-  // Memoize the introduction card to prevent unnecessary re-renders
+  // Introduction card with animation (only applied after mounting)
   const IntroductionCard = useMemo(() => {
     return (
-      <motion.div
-        className="mb-16 md:mb-24 relative z-10"
-        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: prefersReducedMotion ? 0.3 : 1.5, delay: prefersReducedMotion ? 0 : 0.5 }}
-      >
-        <motion.div
-          className="p-8 md:p-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg"
-          initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: prefersReducedMotion ? 0.3 : 1.5, delay: prefersReducedMotion ? 0 : 0.5 }}
-        >
-          <div className="flex flex-col items-start justify-start" style={{ gap: "2px" }}>
-            <motion.h2
-              className="text-3xl md:text-5xl lg:text-6xl font-black text-left tracking-tight uppercase"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: prefersReducedMotion ? 0.3 : 1, delay: prefersReducedMotion ? 0 : 0.5 }}
-              style={{ textShadow: "0.5px 0.5px 0px currentColor", letterSpacing: "-0.02em" }}
-            >
-              <span className="bg-black dark:bg-white text-white dark:text-black px-1">TODO</span> TIENE UN CICLO
-            </motion.h2>
-
-            <motion.h2
-              className="text-3xl md:text-5xl lg:text-6xl font-black text-left tracking-tight uppercase"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: prefersReducedMotion ? 0.3 : 1, delay: prefersReducedMotion ? 0.1 : 1.0 }}
-              style={{ textShadow: "0.5px 0.5px 0px currentColor", letterSpacing: "-0.02em" }}
-            >
-              <span className="bg-black dark:bg-white text-white dark:text-black px-1">TODO</span> SE RENOVARÁ
-            </motion.h2>
-
-            <motion.h2
-              className="text-3xl md:text-5xl lg:text-6xl font-black text-left tracking-tight uppercase"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: prefersReducedMotion ? 0.3 : 1, delay: prefersReducedMotion ? 0.2 : 1.5 }}
-              style={{ textShadow: "0.5px 0.5px 0px currentColor", letterSpacing: "-0.02em" }}
-            >
-              <span className="bg-black dark:bg-white text-white dark:text-black px-1">TODO</span> ES ÚNICO
-            </motion.h2>
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="mt-6 p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700"
-          initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: prefersReducedMotion ? 0.3 : 1, delay: prefersReducedMotion ? 0.1 : 1.2 }}
-        >
-          <h3 className="text-xl md:text-2xl font-bold mb-3 text-black dark:text-white">
-            Cómo Funciona Nuestro Proceso de Venta Único
-          </h3>
-          <div className="space-y-3 text-gray-700 dark:text-gray-300">
-            <p>
-              Cada artículo en nuestra colección es{" "}
-              <span className="font-semibold text-black dark:text-white">completamente único</span> con un stock de
-              exactamente uno. Nuestro proceso de venta sigue un orden secuencial:
-            </p>
-            <ol className="list-decimal pl-5 space-y-2">
-              <li>
-                Los productos se lanzan y venden{" "}
-                <span className="font-semibold text-black dark:text-white">uno por uno</span>, asegurando que cada pieza
-                reciba la atención que merece.
-              </li>
-              <li>Un nuevo producto está disponible solo después de que el anterior haya sido vendido.</li>
-              <li>
-                Los artículos bloqueados (indicados con un{" "}
-                <span className="inline-flex items-center text-red-500 dark:text-red-400">
-                  <Lock className="h-4 w-4 mr-1" /> símbolo
-                </span>
-                ) estarán disponibles una vez que el artículo que los precede encuentre un hogar.
-              </li>
-            </ol>
-            <p className="italic mt-4">
-              Este enfoque nos permite mantener la exclusividad de nuestra colección mientras aseguramos que cada
-              cliente reciba una pieza verdaderamente única.
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Drop Code Label - Below process description */}
-        <motion.div
-          className="mt-8 mx-auto text-center relative max-w-xs"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 1 }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black to-black/80 dark:from-white/80 dark:via-white dark:to-white/80 blur-sm -z-10 rounded-md transform rotate-1"></div>
-          <div className="bg-black dark:bg-white p-5 rounded-md shadow-xl border border-gray-400/30 dark:border-gray-600/30 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400/50 dark:via-gray-500/50 to-transparent"></div>
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400/50 dark:via-gray-500/50 to-transparent"></div>
-            <div className="flex flex-col items-center justify-center">
-              <span className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">
-                Identificador de Colección
-              </span>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold tracking-[0.2em] text-white dark:text-black">0BQ1</span>
-                <span className="text-sm text-gray-400 dark:text-gray-500 font-light">Código de lanzamiento</span>
-              </div>
-              <div className="mt-1 flex items-center">
-                <div className="h-[1px] w-4 bg-gray-500/50 dark:bg-gray-400/50"></div>
-                <div className="h-1 w-1 rounded-full bg-gray-400 dark:bg-gray-500 mx-1"></div>
-                <div className="h-[1px] w-4 bg-gray-500/50 dark:bg-gray-400/50"></div>
-              </div>
+      <div className="mb-16 md:mb-24 relative z-10">
+        {/* Static version shown during SSR and before client-side hydration */}
+        {!mounted ? (
+          <div className="p-8 md:p-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+            <div className="flex flex-col items-start justify-start" style={{ gap: "2px" }}>
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-left tracking-tight uppercase"
+                  style={{ textShadow: "0.5px 0.5px 0px currentColor", letterSpacing: "-0.02em" }}>
+                <span className="bg-black dark:bg-white text-white dark:text-black px-1">TODO</span> TIENE UN CICLO
+              </h2>
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        ) : (
+          /* Animated version only shown after hydration */
+          <motion.div
+            className="mb-16 md:mb-24 relative z-10"
+            initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: prefersReducedMotion ? 0.3 : 1.5, delay: prefersReducedMotion ? 0 : 0.5 }}
+          >
+            <motion.div
+              className="p-8 md:p-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg"
+              initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: prefersReducedMotion ? 0.3 : 1.5, delay: prefersReducedMotion ? 0 : 0.5 }}
+            >
+              <div className="flex flex-col items-start justify-start" style={{ gap: "2px" }}>
+                <motion.h2
+                  className="text-3xl md:text-5xl lg:text-6xl font-black text-left tracking-tight uppercase"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: prefersReducedMotion ? 0.3 : 1, delay: prefersReducedMotion ? 0 : 0.5 }}
+                  style={{ textShadow: "0.5px 0.5px 0px currentColor", letterSpacing: "-0.02em" }}
+                >
+                  <span className="bg-black dark:bg-white text-white dark:text-black px-1">TODO</span> TIENE UN CICLO
+                </motion.h2>
+
+                <motion.h2
+                  className="text-3xl md:text-5xl lg:text-6xl font-black text-left tracking-tight uppercase"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: prefersReducedMotion ? 0.3 : 1, delay: prefersReducedMotion ? 0.1 : 1.0 }}
+                  style={{ textShadow: "0.5px 0.5px 0px currentColor", letterSpacing: "-0.02em" }}
+                >
+                  <span className="bg-black dark:bg-white text-white dark:text-black px-1">TODO</span> SE RENOVARÁ
+                </motion.h2>
+
+                <motion.h2
+                  className="text-3xl md:text-5xl lg:text-6xl font-black text-left tracking-tight uppercase"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: prefersReducedMotion ? 0.3 : 1, delay: prefersReducedMotion ? 0.2 : 1.5 }}
+                  style={{ textShadow: "0.5px 0.5px 0px currentColor", letterSpacing: "-0.02em" }}
+                >
+                  <span className="bg-black dark:bg-white text-white dark:text-black px-1">TODO</span> ES ÚNICO
+                </motion.h2>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="mt-6 p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700"
+              initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: prefersReducedMotion ? 0.3 : 1, delay: prefersReducedMotion ? 0.1 : 1.2 }}
+            >
+              <h3 className="text-xl md:text-2xl font-bold mb-3 text-black dark:text-white">
+                Cómo Funciona Nuestro Proceso de Venta Único
+              </h3>
+              <div className="space-y-3 text-gray-700 dark:text-gray-300">
+                <p>
+                  Cada artículo en nuestra colección es{" "}
+                  <span className="font-semibold text-black dark:text-white">completamente único</span> con un stock de
+                  exactamente uno. Nuestro proceso de venta sigue un orden secuencial:
+                </p>
+                <ol className="list-decimal pl-5 space-y-2">
+                  <li>
+                    Los productos se lanzan y venden{" "}
+                    <span className="font-semibold text-black dark:text-white">uno por uno</span>, asegurando que cada pieza
+                    reciba la atención que merece.
+                  </li>
+                  <li>Un nuevo producto está disponible solo después de que el anterior haya sido vendido.</li>
+                  <li>
+                    Los artículos bloqueados (indicados con un{" "}
+                    <span className="inline-flex items-center text-red-500 dark:text-red-400">
+                      <Lock className="h-4 w-4 mr-1" /> símbolo
+                    </span>
+                    ) estarán disponibles una vez que el artículo que los precede encuentre un hogar.
+                  </li>
+                </ol>
+                <p className="italic mt-4">
+                  Este enfoque nos permite mantener la exclusividad de nuestra colección mientras aseguramos que cada
+                  cliente reciba una pieza verdaderamente única.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Drop Code Label - Below process description */}
+            <motion.div
+              className="mt-8 mx-auto text-center relative max-w-xs"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 1 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black to-black/80 dark:from-white/80 dark:via-white dark:to-white/80 blur-sm -z-10 rounded-md transform rotate-1"></div>
+              <div className="bg-black dark:bg-white p-5 rounded-md shadow-xl border border-gray-400/30 dark:border-gray-600/30 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400/50 dark:via-gray-500/50 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400/50 dark:via-gray-500/50 to-transparent"></div>
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">
+                    Identificador de Colección
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xl font-bold tracking-[0.2em] text-white dark:text-black">0BQ1</span>
+                    <span className="text-sm text-gray-400 dark:text-gray-500 font-light">Código de lanzamiento</span>
+                  </div>
+                  <div className="mt-1 flex items-center">
+                    <div className="h-[1px] w-4 bg-gray-500/50 dark:bg-gray-400/50"></div>
+                    <div className="h-1 w-1 rounded-full bg-gray-400 dark:bg-gray-500 mx-1"></div>
+                    <div className="h-[1px] w-4 bg-gray-500/50 dark:bg-gray-400/50"></div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </div>
     )
-  }, [prefersReducedMotion])
+  }, [mounted, prefersReducedMotion])
 
   return (
     <div className="relative w-full max-w-6xl mx-auto px-4 py-16 md:py-24">
@@ -210,7 +257,11 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
 
         return (
           <div key={`product-container-${product.id}`} className="relative">
-            {index > 0 && prevRef && currentRef && (
+            {/* Only render connector between products if:
+                1. Not the first product
+                2. We have references to both products
+                3. Component is mounted (client-side only) */}
+            {index > 0 && prevRef && currentRef && mounted && (
               <Connector
                 key={`connector-${product.id}`}
                 id={`connector-${product.id}`}
@@ -219,12 +270,12 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
                 isActive={activeIndex === index || activeIndex === index - 1}
               />
             )}
+            
             <LazySection
               key={`product-section-${product.id}`}
               ref={(el) => {
-                // Store reference and return void (not the element itself)
+                // Store reference
                 if (el) productRefs.current[index] = el;
-                // TypeScript expects ref callbacks to return void
               }}
               id={`product-${product.id}`}
               className="mb-16 md:mb-24 relative z-10"

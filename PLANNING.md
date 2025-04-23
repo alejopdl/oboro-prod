@@ -21,7 +21,18 @@ The frontend will be built using Next.js with a hybrid rendering approach:
 
 - **Static Generation (SSG)** for performance-critical pages like the homepage and product listings
 - **Server-Side Rendering (SSR)** for dynamic content like search results
-- **Client-side rendering** for interactive elements
+- **Client-side rendering** for interactive elements and animations
+
+### Client-Side Rendering & Hydration Strategy
+
+To prevent hydration mismatches in Next.js, we've implemented the following strategies:
+
+- **ClientOnly Component**: A wrapper component that only renders its children after hydration completes
+- **Conditional Rendering**: Components that rely on browser APIs render placeholders during SSR
+- **useEffect for Mounting**: Components track mounted state to conditionally apply client-side features
+- **Animation Handling**: Framer Motion animations only applied after hydration is complete
+
+See `docs/hydration-guide.md` for detailed implementation techniques.
 
 ### Backend Architecture
 
@@ -105,12 +116,13 @@ The frontend will be built using Next.js with a hybrid rendering approach:
 │   ├── _app.js             # Custom App component
 │   └── _document.js        # Custom Document component
 ├── components/             # Reusable UI components
-│   ├── Navbar.jsx          # Navigation bar
-│   ├── Footer.jsx          # Footer component
+│   ├── Navbar.tsx          # Navigation bar (TypeScript)
+│   ├── Footer.tsx          # Footer component (TypeScript)
 │   ├── ProductCard.tsx     # Product card component (TypeScript)
 │   ├── ProductGrid.tsx     # Product grid layout (TypeScript)
-│   ├── product-showcase.tsx # Product showcase component
+│   ├── product-showcase.tsx # Product showcase component (TypeScript)
 │   ├── lazy-section.tsx    # Lazy loading section component
+│   ├── ClientOnly.tsx      # Client-side only rendering wrapper
 │   └── ProductDetail.jsx   # Product detail component
 ├── tests/                  # Test utilities and mock data
 │   ├── utils.ts            # Test utilities and mock data
