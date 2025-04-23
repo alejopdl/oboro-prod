@@ -6,6 +6,7 @@ import ProductCard from "./ProductCard"
 import LazySection from "./lazy-section"
 import Connector from "./connector"
 import type { Product } from "@/types/product"
+import { ArrowUpCircle } from "lucide-react" // Import for level heading
 import { useScroll } from "@/contexts/scroll-context"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { Lock } from "lucide-react"
@@ -28,7 +29,7 @@ export default function ProductShowcase({ products, availableDrops }: { products
   const [soldProducts, setSoldProducts] = useState<Record<string, boolean>>({})
   
   // Store references to each product section for positioning connectors
-  const productRefs = useRef<(HTMLDivElement | null)[]>([])
+  const productRefs = useRef<Record<string, HTMLDivElement | null>>({})
   
   // Get current scroll position from context
   const { scrollY } = useScroll()
@@ -85,64 +86,28 @@ export default function ProductShowcase({ products, availableDrops }: { products
     }))
   }
 
-  // Update active product based on scroll position
-  useEffect(() => {
-    // Skip during server-side rendering
-    if (typeof window === "undefined") return
+  // We'll move this useEffect after filteredProducts is defined
+
+  // Helper function to determine if a product is unlocked
+  function isProductUnlocked(product: Product): boolean {
+    // If product is in level 1, it's always unlocked
+    if (product.level === 1) return true;
     
-    const handleScroll = () => {
-      // Calculate center of viewport
-      const scrollPosition = window.scrollY + window.innerHeight / 2
-
-      let closestIndex = 0
-      let closestDistance = Number.POSITIVE_INFINITY
-
-      // Find product closest to center of viewport
-      productRefs.current.forEach((ref, index) => {
-        if (ref) {
-          const { top } = ref.getBoundingClientRect()
-          const distance = Math.abs(top + window.scrollY - scrollPosition)
-
-          if (distance < closestDistance) {
-            closestDistance = distance
-            closestIndex = index
-          }
-        }
-      })
-
-      setActiveIndex(closestIndex)
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  // Function to check if a product should be unlocked
-  const isProductUnlocked = (product: Product) => {
-    // Always unlocked if not blocked in database
-    if (!product.blocked) return true
+    // Get all products in the previous level in the same drop
+    const prevLevelProducts = products.filter(
+      p => p.dropId === product.dropId && p.level === product.level - 1
+    );
     
-    // The current level of the product
-    const currentLevel = product.level
+    // If no products in previous level, this product is unlocked
+    if (prevLevelProducts.length === 0) return true;
     
-    // Check if all products in previous levels are sold out
-    for (const level of levels) {
-      // Only check levels before the current one
-      if (level >= currentLevel) break
-      
-      // Get products from this level
-      const productsInLevel = productsByLevel[level] || []
-      
-      // If any product in previous levels is still in stock, keep locked
-      const anyInStock = productsInLevel.some(p => 
-        p.inStock && !soldProducts[p.id]
-      )
-      
-      if (anyInStock) return false
-    }
-    
-    // All previous levels are sold out, product can be unlocked
-    return true
+    // Check if all products in previous level are sold out
+    return prevLevelProducts.every(p => !p.inStock || soldProducts[p.id]);
+  }
+  
+  // Additional helper to check if a product is locked (opposite of unlocked)
+  function isProductLocked(product: Product): boolean {
+    return !isProductUnlocked(product);
   }
 
   // Introduction card with animation (only applied after mounting)
@@ -243,33 +208,7 @@ export default function ProductShowcase({ products, availableDrops }: { products
               </div>
             </motion.div>
 
-            {/* Drop Code Label - Below process description */}
-            <motion.div
-              className="mt-8 mx-auto text-center relative max-w-xs"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 1 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black to-black/80 dark:from-white/80 dark:via-white dark:to-white/80 blur-sm -z-10 rounded-md transform rotate-1"></div>
-              <div className="bg-black dark:bg-white p-5 rounded-md shadow-xl border border-gray-400/30 dark:border-gray-600/30 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400/50 dark:via-gray-500/50 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400/50 dark:via-gray-500/50 to-transparent"></div>
-                <div className="flex flex-col items-center justify-center">
-                  <span className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">
-                    Identificador de Colección
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xl font-bold tracking-[0.2em] text-white dark:text-black">0BQ1</span>
-                    <span className="text-sm text-gray-400 dark:text-gray-500 font-light">Código de lanzamiento</span>
-                  </div>
-                  <div className="mt-1 flex items-center">
-                    <div className="h-[1px] w-4 bg-gray-500/50 dark:bg-gray-400/50"></div>
-                    <div className="h-1 w-1 rounded-full bg-gray-400 dark:bg-gray-500 mx-1"></div>
-                    <div className="h-[1px] w-4 bg-gray-500/50 dark:bg-gray-400/50"></div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+            {/* Collection identifier removed as requested */}
           </motion.div>
         )}
       </div>
@@ -293,6 +232,54 @@ export default function ProductShowcase({ products, availableDrops }: { products
   const levels = Object.keys(productsByLevel)
     .map(Number)
     .sort((a, b) => a - b)
+    
+  // Update active product based on scroll position - moved after filteredProducts is defined
+  // Use a ref to store the current filtered products to avoid dependency issues
+  const filteredProductsRef = useRef(filteredProducts);
+  
+  // Update the ref when filteredProducts changes
+  useEffect(() => {
+    filteredProductsRef.current = filteredProducts;
+  }, [filteredProducts]);
+  
+  // Handle scroll without dependency on filteredProducts directly
+  useEffect(() => {
+    const handleScroll = () => {
+      // Only run if we have product refs
+      if (Object.keys(productRefs.current).length === 0) return;
+      
+      // Throttle scroll events for better performance
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => {
+          // Find any product that's in view
+          Object.entries(productRefs.current).forEach(([id, ref]) => {
+            if (!ref) return;
+            
+            const rect = ref.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            
+            // Check if product is in view
+            if (rect.top < viewportHeight && rect.bottom > 0) {
+              // Extract product id from the ref key (format: "level-productId")
+              const parts = id.split('-');
+              if (parts.length >= 2) {
+                const productId = parts.slice(1).join('-'); // In case product ID contains hyphens
+                // Use the ref version of filteredProducts
+                const currentProducts = filteredProductsRef.current;
+                const productIndex = currentProducts.findIndex(p => p.id === productId);
+                if (productIndex !== -1) {
+                  setActiveIndex(productIndex);
+                }
+              }
+            }
+          });
+        });
+      }
+    };
+    
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []); // Empty dependency array to avoid re-registering on every render
 
   return (
     <div className="relative w-full max-w-6xl mx-auto px-4 py-16 md:py-24">
@@ -300,7 +287,7 @@ export default function ProductShowcase({ products, availableDrops }: { products
       {IntroductionCard}
       
       {/* Products by Level */}
-      <div className="space-y-24 mt-16">
+      <div className="space-y-24 mt-16 relative">
         {/* Drop Selector - Positioned above the first level */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex flex-wrap gap-2 justify-center">
@@ -322,10 +309,16 @@ export default function ProductShowcase({ products, availableDrops }: { products
         </div>
         {levels.map(level => (
           <div key={level} className="mb-16 flex flex-col items-center">
-            <h3 className="text-xl font-semibold mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded-md">Nivel {level}</h3>
+            <h3 className="text-xl font-semibold mb-4 bg-black/80 dark:bg-white/80 text-white dark:text-black px-3 py-2 rounded-md inline-flex items-center gap-1">
+              <ArrowUpCircle className="h-4 w-4" />
+              <span>Nivel {level}</span>
+            </h3>
             
             {/* Centered container that will hold the products */}
-            <div className="w-full flex justify-center">
+            <div className="w-full flex justify-center relative">
+              {/* Level indicator - visual line through the center */}
+              <div className="absolute left-1/2 h-full -translate-x-1/2 w-1 bg-gradient-to-b from-black/0 via-black/10 to-black/0 dark:from-white/0 dark:via-white/10 dark:to-white/0 -z-10"></div>
+              
               {/* Flexible-width grid with auto-fit to center items */}
               <div className={`grid gap-6 w-full max-w-6xl mx-auto
                 grid-cols-1 
@@ -342,8 +335,8 @@ export default function ProductShowcase({ products, availableDrops }: { products
                     <LazySection
                       key={`product-section-${product.id}`}
                       ref={(el) => {
-                        // Store reference
-                        if (el) productRefs.current[level] = el;
+                        // Store reference with a unique ID combining level and product ID
+                        if (el) productRefs.current[`${level}-${product.id}`] = el;
                       }}
                       id={`product-${product.id}`}
                       className="relative z-10 flex justify-center"
@@ -365,6 +358,7 @@ export default function ProductShowcase({ products, availableDrops }: { products
             </div>
           </div>
         ))}
+        {/* Connectors removed as requested */}
       </div>
     </div>
   )

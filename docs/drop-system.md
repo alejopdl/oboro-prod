@@ -29,8 +29,14 @@ The drop system is a product release strategy that:
 ### Visual Status Indicators
 
 - **Available**: Products that are in stock and available for purchase
+  - Displayed with an inverted color scheme (dark in light mode, white in dark mode)
+  - Feature a subtle glow effect with accent color borders
+  - Include an unlock icon in the top-right corner
 - **Sold Out**: Products that are no longer available (sold out)
+  - Displayed with reduced opacity and a "Sold Out" badge
 - **Locked**: Products that are not yet available for purchase (higher-level products)
+  - Displayed with a lock icon overlay
+  - Can't be clicked or accessed until unlocked
 
 ## How It Works
 
@@ -57,7 +63,7 @@ The drop system implementation includes these main UI components:
 
 1. **DropSelector**: Buttons for selecting different product drops
 2. **ProductShowcase**: Displays products grouped by level with correct visual indicators
-3. **ProductCard**: Includes visual indicators for locked/blocked products
+3. **ProductCard**: Includes visual indicators with inverted color design for available products and clear indicators for locked/blocked products
 
 ## Implementation Details
 
@@ -99,6 +105,21 @@ The drop system includes comprehensive tests:
 2. **Integration tests** for the ProductShowcase component
 3. **End-to-end tests** for the drop selection and level-unlocking functionality
 
+## Current Styling Features
+
+1. **Inverted Color Scheme**: Product cards use an inverted color scheme to create visual interest
+   - Light Mode: Dark cards with white text and accents
+   - Dark Mode: White cards with dark text and accents
+
+2. **Glow Effects**: Available products feature subtle glow effects
+   - Edge highlights around the border
+   - Subtle pulse animation to draw attention
+   - All effects avoid affecting product image clarity
+
+3. **Status Badges**: Clear visual indicators for product status
+   - Available products feature a green badge that matches the card color scheme
+   - Sold-out products display a prominent red badge
+
 ## Future Enhancements
 
 Potential future enhancements to the drop system:
@@ -108,6 +129,7 @@ Potential future enhancements to the drop system:
 3. Countdown timers for upcoming drops
 4. Email notifications for new drop releases
 5. Personalized recommendations based on previous drop purchases
+6. Animated transitions when products become unlocked
 
 ## Related Documentation
 

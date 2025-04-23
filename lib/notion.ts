@@ -1,6 +1,7 @@
 // Purpose: Notion API client and utility functions for fetching product data
 
 import { Client } from '@notionhq/client';
+import { getProductWithDefaults } from './utils';
 
 // Define types for our product data
 export interface Product {
@@ -48,9 +49,21 @@ export async function getAllProducts(): Promise<Product[]> {
       throw new Error(`Cannot access database. Make sure the integration has access: ${e?.message || 'Unknown error'}`);
     }
 
-    // Query the database
+    // Query the database - get up to 100 products to make sure we see the variety
     const response = await notion.databases.query({
       database_id: databaseId,
+      page_size: 100, // Get more products to ensure variety
+      // Sort by DropID to group products by drop
+      sorts: [
+        {
+          property: 'DropID',
+          direction: 'ascending',
+        },
+        {
+          property: 'Level',
+          direction: 'ascending',
+        }
+      ],
     });
 
     console.log('Found', response.results.length, 'products');
@@ -60,50 +73,48 @@ export async function getAllProducts(): Promise<Product[]> {
       // Log the raw page data for debugging
       console.log('Raw page data:', JSON.stringify(page.properties, null, 2));
       
-      // Extract the product name to help generate mock data
-      const productName = page.properties.Name.title[0]?.plain_text || '';
-      
-      // Generate mock drop data based on product name
-      // This is a temporary solution until the fields are added to Notion
-      let mockLevel = 1;
-      let mockBlocked = false;
-      let mockDropId = 'DROP1';
-      
-      // Assign different mock values based on product name patterns
-      if (productName.includes('44') || productName.includes('55') || productName.includes('33')) {
-        mockDropId = 'MiniDROP2';
-        mockLevel = productName.includes('44') ? 3 : (productName.includes('55') ? 4 : 2);
-      } else if (productName.includes('AA') || productName.includes('EEE')) {
-        mockDropId = 'XDROP3';
-        mockLevel = productName.includes('AA') ? 1 : 2;
-      } else {
-        // Basic pattern matching for DROP1
-        if (productName.includes('1')) mockLevel = 1;
-        else if (productName.includes('2')) mockLevel = 2;
-        else if (productName.includes('Remera')) mockLevel = 3;
-        else if (productName.includes('Pant')) mockLevel = 4;
+      try {
+        // Extract data from Notion properties
+        const rawProduct = {
+          id: page.id,
+          name: page.properties.Name.title[0]?.plain_text,
+          price: page.properties.Price.number,
+          description: page.properties.Description.rich_text[0]?.plain_text,
+          images: page.properties.Images.files?.map((file: any) => file.file?.url || file.external?.url || ''),
+          // Fix Category - it's multi_select in the database
+          category: page.properties.Category.multi_select?.[0]?.name,
+          inStock: page.properties.InStock.checkbox,
+          size: page.properties.Size.select?.name,
+          
+          // Drop system fields - carefully mapped with exact property names
+          level: page.properties.Level?.number,
+          blocked: page.properties.Block?.checkbox,
+          dropId: page.properties.DropID?.select?.name,
+          
+          // Add metadata
+          createdTime: page.created_time,
+          lastEditedTime: page.last_edited_time,
+        };
+        
+        // Use our utility function to ensure all fields have proper defaults
+        const product = getProductWithDefaults(rawProduct);
+        
+        // Extra debug to verify drop system fields
+        console.log(`Mapped product ${product.name}:`, {
+          level: product.level,
+          blocked: product.blocked,
+          dropId: product.dropId
+        });
+        
+        return product;
+      } catch (error) {
+        console.error(`Error mapping product ${page.id}:`, error);
+        // Return a default product with error info
+        return getProductWithDefaults({
+          id: page.id,
+          name: `Error mapping product ${page.id}`
+        });
       }
-      
-      // Block higher level products
-      mockBlocked = mockLevel > 1;
-
-      return {
-        id: page.id,
-        name: productName,
-        price: page.properties.Price.number || 0,
-        description: page.properties.Description.rich_text[0]?.plain_text || '',
-        images: page.properties.Images.files?.map((file: any) => file.file?.url || file.external?.url || '') || [],
-        category: page.properties.Category.select?.name || '',
-        inStock: page.properties.InStock.checkbox || false,
-        size: page.properties.Size.select?.name || undefined,
-        // Add mock data for drop system (until added to Notion)
-        level: mockLevel,
-        blocked: mockBlocked,
-        dropId: mockDropId,
-        // Add metadata
-        createdTime: page.created_time || '',
-        lastEditedTime: page.last_edited_time || '',
-      };
     });
 
     return products;
@@ -122,33 +133,7 @@ export async function getProductById(id: string): Promise<Product | null> {
   try {
     const response = await notion.pages.retrieve({ page_id: id });
     
-    // Get the product name to help generate mock data
-    const productName = (response as any).properties.Name.title[0]?.plain_text || '';
-      
-    // Generate mock drop data based on product name patterns
-    // This is a temporary solution until the fields are added to Notion
-    let mockLevel = 1;
-    let mockBlocked = false;
-    let mockDropId = 'DROP1';
-    
-    // Assign different mock values based on product name patterns
-    if (productName.includes('44') || productName.includes('55') || productName.includes('33')) {
-      mockDropId = 'MiniDROP2';
-      mockLevel = productName.includes('44') ? 3 : (productName.includes('55') ? 4 : 2);
-    } else if (productName.includes('AA') || productName.includes('EEE')) {
-      mockDropId = 'XDROP3';
-      mockLevel = productName.includes('AA') ? 1 : 2;
-    } else {
-      // Basic pattern matching for DROP1
-      if (productName.includes('1')) mockLevel = 1;
-      else if (productName.includes('2')) mockLevel = 2;
-      else if (productName.includes('Remera')) mockLevel = 3;
-      else if (productName.includes('Pant')) mockLevel = 4;
-    }
-    
-    // Block higher level products
-    mockBlocked = mockLevel > 1;
-      
+    // Now using real data from Notion instead of mock data
     // Transform the page data into our Product type
     return {
       id: response.id,
@@ -159,10 +144,11 @@ export async function getProductById(id: string): Promise<Product | null> {
       category: (response as any).properties.Category.select?.name || '',
       inStock: (response as any).properties.InStock.checkbox || false,
       size: (response as any).properties.Size.select?.name || undefined,
-      // Add mock data for drop system (until added to Notion)
-      level: mockLevel,
-      blocked: mockBlocked,
-      dropId: mockDropId,
+      // Get real drop system data from Notion - matching exact property names from database
+      // Force non-undefined values with explicit default values
+      level: (response as any).properties.Level?.number ?? 1,
+      blocked: (response as any).properties.Block?.checkbox ?? false,
+      dropId: (response as any).properties.DropID?.select?.name ?? 'DROP1',
       // Add metadata
       createdTime: (response as any).created_time || '',
       lastEditedTime: (response as any).last_edited_time || '',

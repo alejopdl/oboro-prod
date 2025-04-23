@@ -35,9 +35,9 @@ function ErrorDisplay({ error }: { error: Error }) {
 // Use async/await for server component data fetching (no searchParams needed at this level)
 export default async function Home() {
   try {
-    // Fetch products from our mock API instead of directly from Notion
-    // This ensures we have all the fields we need
-    const response = await fetch('http://localhost:3000/api/mock-products', { 
+    // Fetch products from our direct Notion API which properly shows all levels and drops
+    // This endpoint has minimal processing to ensure we get the full variety from Notion
+    const response = await fetch('http://localhost:3000/api/notion-direct', { 
       // Add cache: 'no-store' to ensure we always get fresh data
       cache: 'no-store'
     });

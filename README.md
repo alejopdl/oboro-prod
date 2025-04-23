@@ -27,7 +27,9 @@ A modern, responsive e-commerce product listing website built with Next.js and N
 - Error handling and loading states
 - Product listing and filtering
 - **Drop system with level-based product unlocking**
-- Visual indicators for product availability status
+- Visual indicators for product availability status with inverted color card design
+- Unique card design: dark in light mode, white in dark mode
+- Subtle glow effect on available products
 - WhatsApp integration for purchases
 - Responsive design
 - SEO optimized

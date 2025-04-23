@@ -101,8 +101,8 @@ describe('HomePage', () => {
     expect(screen.getByTestId('product-count').textContent).toBe('2');
     expect(screen.getByTestId('first-product-name').textContent).toBe('Mock Product 1');
     
-    // Verify that fetch was called with the correct URL
-    expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/mock-products', { cache: 'no-store' });
+    // Verify that fetch was called with the correct URL (we now use notion-direct instead of mock-products)
+    expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/notion-direct', { cache: 'no-store' });
   });
 
   // Test 2: Error state - Show error message when data fetching fails
