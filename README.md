@@ -23,10 +23,13 @@ A modern, responsive e-commerce product listing website built with Next.js and N
 
 - Modern UI with Tailwind CSS
 - Notion as headless CMS
+- Server-side data fetching from Notion database
+- Error handling and loading states
 - Product listing and filtering
 - WhatsApp integration for purchases
 - Responsive design
 - SEO optimized
+- Comprehensive test coverage
 
 ## Tech Stack
 
@@ -38,12 +41,17 @@ A modern, responsive e-commerce product listing website built with Next.js and N
 
 ## Project Structure
 
-Following the standard Next.js structure with:
-- `/pages` - Routes and API endpoints
+Following a hybrid Next.js structure with both App Router and Pages Router:
+- `/app` - App Router pages and layouts
+- `/pages` - API endpoints (Pages Router)
 - `/components` - Reusable UI components
 - `/lib` - Utility functions and API clients
 - `/styles` - Global styles and Tailwind config
 - `/public` - Static assets
+- `/tests` - Test utilities and mocks
+- `/docs` - Project documentation
+
+See `docs/notion-integration.md` for details on how the Notion integration works.
 
 ## Development Guidelines
 
@@ -70,16 +78,28 @@ Following the standard Next.js structure with:
    - Monitor Core Web Vitals
    - Follow accessibility guidelines
 
-## Notion Database Structure
+## Notion CMS Integration
 
+### Database Structure
 The Notion database includes these fields:
-- Name (Title)
-- Price (Number)
-- Description (Text)
-- Images (Files & Media)
-- Category (Select)
-- InStock (Checkbox)
-- Size (Select)
+- Name (Title) - Product name
+- Price (Number) - Price in ARS (Argentine Pesos)
+- Description (Text) - Detailed product description
+- Images (Files & Media) - Product images
+- Category (Select) - Product category
+- InStock (Checkbox) - Whether the product is available
+- Size (Select) - Product size (S, M, L, XL, etc.)
+
+### Working with Notion
+- API calls are made through secure server-side functions
+- Error handling is in place for failed API calls
+- All data is typed using TypeScript interfaces
+- See `docs/notion-cms-guide.md` for editor instructions
+
+### Testing
+- Unit tests for Notion API functions
+- Integration tests for pages using Notion data
+- Mocks for testing without calling the actual API
 
 ## Contributing
 

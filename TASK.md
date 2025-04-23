@@ -46,6 +46,11 @@
   - [x] Create ClientOnly component wrapper
   - [x] Fix client-side animations in SSR context
   - [x] Ensure all tests pass with hydration fixes
+- [x] Connect Notion database to the application (Added 2025-04-23)
+  - [x] Update homepage to fetch real products from Notion
+  - [x] Add error handling for API requests
+  - [x] Create unit tests for Notion integration
+  - [x] Create tests for homepage with Notion data
 - [ ] Create Homepage with featured products
 - [ ] Implement Products listing page
 - [ ] Create dynamic Product detail page
@@ -82,8 +87,8 @@
 - [x] Create Notion integration and get API key
 - [x] Design and create Notion database for products
 - [x] Implement Notion API client in `lib/notion.js`
-- [ ] Create utility functions for data transformation
-- [ ] Implement error handling for API requests
+- [x] Create utility functions for data transformation
+- [x] Implement error handling for API requests
 - [ ] Add caching strategy for Notion data
 
 ### UI Components
@@ -152,9 +157,11 @@
 
 ### Testing
 - [x] Write unit tests for utility functions
-- [ ] Add integration tests for API routes
+- [x] Add integration tests for API routes
 - [x] Implement end-to-end tests for critical user flows
 - [x] Create component tests for Navbar and Footer
+- [x] Create tests for Notion API integration
+- [x] Create tests for homepage with real data
 - [ ] Test performance with Lighthouse
 - [ ] Cross-browser testing
 
