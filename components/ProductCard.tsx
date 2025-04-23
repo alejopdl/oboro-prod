@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { config } from '@/data/config'
 import { useReducedMotion } from '@/hooks/use-reduced-motion'
 import { Product } from '../types/product'
+import { Lock } from 'lucide-react' // Import Lock icon
 
 interface ProductCardProps {
   product: Product
@@ -14,10 +15,16 @@ interface ProductCardProps {
   panelPosition?: string
   index?: number
   previousProductSold?: boolean
+  soldOut?: boolean // Add explicit soldOut prop
+  locked?: boolean // Add locked prop
+  onProductSold?: () => void // Add callback for when product is sold
 }
 
-const ProductCard = ({ product, isActive, panelPosition, index, previousProductSold }: ProductCardProps): React.ReactElement => {
-  const { id, name, price, images, category, soldOut, size } = product
+const ProductCard = ({ product, isActive, panelPosition, index, previousProductSold, soldOut: soldOutProp, locked: lockedProp, onProductSold }: ProductCardProps): React.ReactElement => {
+  // Use props if provided, otherwise use product properties
+  const { id, name, price, images, category, size } = product
+  const soldOut = soldOutProp !== undefined ? soldOutProp : product.soldOut
+  const locked = lockedProp !== undefined ? lockedProp : product.locked
   const prefersReducedMotion = useReducedMotion()
   const [imageLoaded, setImageLoaded] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -48,7 +55,15 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
       )}
       className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl"
     >
-      <Link href={`/produto/${id}`} className="block">
+      <Link 
+        href={locked ? "#" : `/produto/${id}`} 
+        className={`block ${locked ? 'pointer-events-none' : ''}`}
+        onClick={(e) => {
+          if (locked) {
+            e.preventDefault()
+            return
+          }
+        }}>
         <div className="relative h-64 w-full overflow-hidden">
           <div
             className={`absolute inset-0 bg-gray-200 dark:bg-gray-700 ${imageLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
@@ -64,6 +79,14 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
           {soldOut && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
               <span className="text-white font-bold text-lg">Agotado</span>
+            </div>
+          )}
+          {locked && !soldOut && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
+              <div className="text-center text-white">
+                <Lock className="mx-auto mb-2" aria-hidden="true" />
+                <span className="text-sm">Bloqueado</span>
+              </div>
             </div>
           )}
         </div>

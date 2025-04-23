@@ -34,6 +34,10 @@ export interface Product {
   description: string
   category: string
   inStock?: boolean
+  // Campos del sistema de drops
+  level: number       // Nivel del producto dentro del drop
+  blocked: boolean    // Si está bloqueado hasta que se agoten los de nivel inferior
+  dropId: string      // Identificador del drop al que pertenece el producto
 }
 ```
 
@@ -44,6 +48,7 @@ export interface Product {
 - Inicializa el cliente de Notion con el token de API
 - Define funciones para obtener datos (productos)
 - Convierte los datos de Notion al formato de nuestra aplicación
+- Mapea propiedades especiales del sistema de drops (level, blocked, dropId)
 
 ### 2. Componentes del Servidor (`app/page.tsx`)
 
@@ -60,15 +65,19 @@ export interface Product {
 ## Flujo de Datos
 
 1. **Obtención de Datos**: 
-   - La página principal es un componente de servidor que llama a `getAllProducts()`
-   - Los datos se obtienen directamente de Notion durante el renderizado en el servidor
+   - La página principal es un componente de servidor que llama a una API de productos mock
+   - Los datos incluyen campos del sistema de drops (level, blocked, dropId)
 
 2. **Renderizado**:
    - Los datos se procesan y convierten al formato correcto
-   - Se pasan a componentes como `ProductShowcase`
+   - Se agrupan productos por drop y nivel
+   - Se calculan los estados de desbloqueo según los niveles
+   - Se pasan a componentes como `ProductShowcase` con información de drops disponibles
 
 3. **Interactividad**:
-   - Componentes del lado del cliente manejan interacciones sin necesidad de recargar
+   - El componente `DropSelector` permite cambiar entre diferentes drops
+   - El `ProductShowcase` filtra y organiza productos según el drop seleccionado
+   - La lógica de desbloqueo por niveles se aplica en tiempo real
 
 ## Pruebas
 
@@ -79,10 +88,15 @@ Se implementaron pruebas para:
    - Comprobar el manejo de errores
    - Asegurar que el formato de datos sea correcto
 
-2. **Componentes** (`app/__tests__/page.test.tsx`):
+2. **Componentes de página** (`app/__tests__/page.test.tsx`):
    - Probar que la página renderice correctamente los productos
    - Verificar el manejo de errores
    - Comprobar el funcionamiento con listas vacías
+
+3. **Componentes del sistema de drops** (`components/__tests__/drop-selector.test.tsx`):
+   - Verificar la correcta renderización de opciones de drops
+   - Comprobar los indicadores visuales del drop seleccionado
+   - Validar los estilos de los botones según su estado
 
 ## Variables de Entorno Requeridas
 
@@ -97,6 +111,11 @@ NOTION_DATABASE_ID=<id-de-la-base-de-datos>
 - Añadir webhooks para actualización en tiempo real
 - Implementar paginación para grandes conjuntos de datos
 - Optimizar la obtención de imágenes
+- **Mejoras al sistema de drops**:
+  - Implementar filtrado de drops en el lado del servidor para mejor SEO
+  - Añadir páginas de destino específicas para cada drop
+  - Implementar contadores regresivos para próximos drops
+  - Añadir notificaciones por correo para nuevos lanzamientos
 
 ## Recursos
 

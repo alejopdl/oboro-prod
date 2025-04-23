@@ -5,8 +5,9 @@ import BackToTop from "@/components/back-to-top"
 import SkipLink from "@/components/skip-link"
 import ErrorBoundary from "@/components/error-boundary"
 import ResourcePrefetcher from "@/components/resource-prefetcher"
-// Remove static products import
-import { getAllProducts } from "@/lib/notion"
+import DropSelector from "@/components/drop-selector" // Import the DropSelector component
+// Use fetch for API instead of direct Notion integration
+// This is a simpler approach for beginners
 
 // Add a loading component to show while data is being fetched
 function LoadingProducts() {
@@ -31,19 +32,47 @@ function ErrorDisplay({ error }: { error: Error }) {
   )
 }
 
-// Use async/await for server component data fetching
+// Use async/await for server component data fetching (no searchParams needed at this level)
 export default async function Home() {
   try {
-    // Fetch products from Notion
-    const notionProducts = await getAllProducts();
+    // Fetch products from our mock API instead of directly from Notion
+    // This ensures we have all the fields we need
+    const response = await fetch('http://localhost:3000/api/mock-products', { 
+      // Add cache: 'no-store' to ensure we always get fresh data
+      cache: 'no-store'
+    });
     
-    // Map to match expected format if needed (your Product type might be different)
-    const products = notionProducts.map(product => ({
-      ...product,
-      // Add any missing properties needed by your components
-      soldOut: !product.inStock,
-      locked: false, // You might need to adjust this logic based on your requirements
-    }));
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    // Add type information for the API response
+    interface ApiResponse {
+      success: boolean;
+      count: number;
+      products: Array<{
+        id: string;
+        name: string;
+        price: number;
+        description: string;
+        images: string[];
+        category: string;
+        inStock: boolean;
+        soldOut: boolean;
+        size?: string;
+        level: number;
+        blocked: boolean;
+        dropId: string;
+        createdTime?: string;
+        lastEditedTime?: string;
+      }>;
+    }
+    
+    const data = await response.json() as ApiResponse;
+    const products = data.products;
+    
+    // Extract all available drop IDs from products (now with proper typing)
+    const availableDrops = [...new Set(products.map(product => product.dropId))] as string[];
 
     return (
       <>
@@ -53,7 +82,10 @@ export default async function Home() {
             <ResourcePrefetcher products={products} />
             <ChladniBackground />
             <Header />
-            <ProductShowcase products={products} />
+            <ProductShowcase 
+              products={products} 
+              availableDrops={availableDrops}
+            />
             <BackToTop />
           </main>
         </ErrorBoundary>

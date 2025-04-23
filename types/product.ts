@@ -12,4 +12,11 @@ export interface Product {
   description: string
   category: string
   inStock?: boolean // Add inStock to match Notion data
+  // New fields for drop system
+  level: number // The product's level within a drop
+  blocked: boolean // Whether the product is blocked
+  dropId: string // The ID of the drop this product belongs to
+  // Optional metadata
+  createdTime?: string
+  lastEditedTime?: string
 }

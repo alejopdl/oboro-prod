@@ -21,6 +21,9 @@ La base de datos de productos en Notion contiene las siguientes propiedades:
 | Category (Categoría) | Select | Categoría del producto |
 | InStock (En Stock) | Checkbox | Marcar si el producto está disponible |
 | Size (Talle) | Select | Talle del producto (S, M, L, XL, etc.) |
+| Level (Nivel) | Number | Nivel del producto dentro de un drop (1, 2, 3, etc.) |
+| Blocked (Bloqueado) | Checkbox | Marcar si el producto debe bloquearse hasta que se agoten los de nivel inferior |
+| DropId (ID de Drop) | Select | Colección a la que pertenece el producto (ej. "DROP1", "MiniDROP2") |
 
 ## Cómo Agregar un Nuevo Producto
 
@@ -34,6 +37,9 @@ La base de datos de productos en Notion contiene las siguientes propiedades:
    - **Category**: Selecciona una categoría existente o crea una nueva
    - **InStock**: Marca si el producto está disponible
    - **Size**: Selecciona el talle disponible
+   - **Level**: Asigna un nivel al producto (1, 2, 3, etc.)
+   - **Blocked**: Marca si el producto debe estar bloqueado inicialmente
+   - **DropId**: Selecciona a qué colección o "drop" pertenece el producto
 
 ## Cómo Editar un Producto Existente
 
@@ -63,6 +69,11 @@ La base de datos de productos en Notion contiene las siguientes propiedades:
    - No crees categorías nuevas innecesariamente
    - Consulta con el equipo antes de crear nuevas categorías
 
+4. **Sistema de Drops**: Estructura tus productos adecuadamente
+   - Asigna niveles consecutivos empezando desde 1
+   - Mantén los IDs de drop consistentes y descriptivos
+   - Marca como bloqueados todos los productos de nivel 2 o superior
+
 ## Solución de Problemas
 
 Si encuentras algún problema con la integración de Notion:
@@ -71,7 +82,30 @@ Si encuentras algún problema con la integración de Notion:
 2. Asegúrate de que las imágenes sean accesibles públicamente
 3. Contacta al equipo técnico si los cambios no aparecen después de 10 minutos
 
+## Sistema de Drops
+
+El sistema de drops permite organizar productos en colecciones y desbloquearlos por niveles:
+
+1. **Crear un nuevo Drop**:
+   - Agrega una nueva opción en la propiedad Select "DropId"
+   - Usa nombres descriptivos y consistentes (ej. "DROP1", "MiniDROP2")
+
+2. **Configurar niveles**:
+   - **Nivel 1**: Productos disponibles inmediatamente (si están en stock)
+   - **Nivel 2+**: Productos que solo se desbloquean cuando se agotan los de nivel inferior
+
+3. **Configurar bloqueo**:
+   - Marca la casilla "Blocked" para productos de nivel 2 o superior
+   - Los productos de nivel 1 nunca deben estar bloqueados
+
+4. **Prueba la configuración**:
+   - Verifica que los productos aparecen correctamente en el sitio web
+   - Comprueba que el sistema de desbloqueo funciona como se espera
+
+Consulta la documentación detallada en `docs/drop-system.md` para más información.
+
 ## Recursos Adicionales
 
 - [Documentación oficial de Notion](https://developers.notion.com/)
 - [Guía de formatos de texto en Notion](https://www.notion.so/help/formatting)
+- [Guía del sistema de Drops](../docs/drop-system.md)

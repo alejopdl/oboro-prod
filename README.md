@@ -26,6 +26,8 @@ A modern, responsive e-commerce product listing website built with Next.js and N
 - Server-side data fetching from Notion database
 - Error handling and loading states
 - Product listing and filtering
+- **Drop system with level-based product unlocking**
+- Visual indicators for product availability status
 - WhatsApp integration for purchases
 - Responsive design
 - SEO optimized
@@ -89,12 +91,16 @@ The Notion database includes these fields:
 - Category (Select) - Product category
 - InStock (Checkbox) - Whether the product is available
 - Size (Select) - Product size (S, M, L, XL, etc.)
+- Level (Number) - Product level in the drop system (1, 2, 3, etc.)
+- Blocked (Checkbox) - Whether the product is blocked until lower levels are sold out
+- DropId (Select) - The drop collection the product belongs to (e.g., "DROP1", "MiniDROP2")
 
 ### Working with Notion
 - API calls are made through secure server-side functions
 - Error handling is in place for failed API calls
 - All data is typed using TypeScript interfaces
 - See `docs/notion-cms-guide.md` for editor instructions
+- See `docs/drop-system.md` for details on how the drop system works
 
 ### Testing
 - Unit tests for Notion API functions

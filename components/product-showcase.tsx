@@ -16,10 +16,11 @@ import { preloadImages } from "@/services/image-service"
  * with animations, connectors between products, and lazy loading.
  * 
  * @param props - Component props
- * @param props.products - Array of product objects to display
+ * @param props.products - Array of all product objects
+ * @param props.availableDrops - Array of available drop IDs
  * @returns JSX Element - The product showcase component
  */
-export default function ProductShowcase({ products }: { products: Product[] }) {
+export default function ProductShowcase({ products, availableDrops }: { products: Product[], availableDrops: string[] }) {
   // Track which product is currently active based on scroll position
   const [activeIndex, setActiveIndex] = useState(0)
   
@@ -38,10 +39,18 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
   // Track if component is mounted (client-side only)
   const [mounted, setMounted] = useState(false)
   
-  // Set mounted state after component mounts
+  // Add state for selected drop
+  const [selectedDrop, setSelectedDrop] = useState<string>('')
+  
+  // Set mounted state after component mounts and initialize selected drop
   useEffect(() => {
     setMounted(true)
-  }, [])
+    
+    // Initialize selected drop to the first available drop
+    if (availableDrops.length > 0 && selectedDrop === '') {
+      setSelectedDrop(availableDrops[0])
+    }
+  }, [availableDrops, selectedDrop])
 
   // Preload first product images
   useEffect(() => {
@@ -59,12 +68,14 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
   useEffect(() => {
     const initialSoldState: Record<string, boolean> = {}
     products.forEach((product) => {
-      if (product.soldOut) {
+      if (product.soldOut || !product.inStock) {
         initialSoldState[product.id] = true
       }
     })
     setSoldProducts(initialSoldState)
   }, [products])
+  
+  // Note: productsByLevel and levels are now created using filteredProducts above
 
   // Function to mark a product as sold
   const markProductAsSold = (productId: string) => {
@@ -106,11 +117,32 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Function to check if the previous product is sold
-  const isPreviousProductSold = (index: number) => {
-    if (index === 0) return true // First product is always unlocked
-    const previousProduct = products[index - 1]
-    return soldProducts[previousProduct.id] || false
+  // Function to check if a product should be unlocked
+  const isProductUnlocked = (product: Product) => {
+    // Always unlocked if not blocked in database
+    if (!product.blocked) return true
+    
+    // The current level of the product
+    const currentLevel = product.level
+    
+    // Check if all products in previous levels are sold out
+    for (const level of levels) {
+      // Only check levels before the current one
+      if (level >= currentLevel) break
+      
+      // Get products from this level
+      const productsInLevel = productsByLevel[level] || []
+      
+      // If any product in previous levels is still in stock, keep locked
+      const anyInStock = productsInLevel.some(p => 
+        p.inStock && !soldProducts[p.id]
+      )
+      
+      if (anyInStock) return false
+    }
+    
+    // All previous levels are sold out, product can be unlocked
+    return true
   }
 
   // Introduction card with animation (only applied after mounting)
@@ -244,55 +276,96 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
     )
   }, [mounted, prefersReducedMotion])
 
+  // Filter products by the selected drop
+  const filteredProducts = selectedDrop ? 
+    products.filter(product => product.dropId === selectedDrop) : 
+    [];
+
+  // Group filtered products by level
+  const productsByLevel = filteredProducts.reduce((acc, product) => {
+    const level = product.level
+    if (!acc[level]) acc[level] = []
+    acc[level].push(product)
+    return acc
+  }, {} as Record<number, Product[]>)
+  
+  // Get levels sorted in ascending order
+  const levels = Object.keys(productsByLevel)
+    .map(Number)
+    .sort((a, b) => a - b)
+
   return (
     <div className="relative w-full max-w-6xl mx-auto px-4 py-16 md:py-24">
       {/* Introduction Card */}
       {IntroductionCard}
-
-      {/* Product Cards */}
-      {products.map((product, index) => {
-        const previousProductSold = isPreviousProductSold(index)
-        const prevRef = index > 0 ? productRefs.current[index - 1] : null
-        const currentRef = productRefs.current[index]
-
-        return (
-          <div key={`product-container-${product.id}`} className="relative">
-            {/* Only render connector between products if:
-                1. Not the first product
-                2. We have references to both products
-                3. Component is mounted (client-side only) */}
-            {index > 0 && prevRef && currentRef && mounted && (
-              <Connector
-                key={`connector-${product.id}`}
-                id={`connector-${product.id}`}
-                startRef={prevRef}
-                endRef={currentRef}
-                isActive={activeIndex === index || activeIndex === index - 1}
-              />
-            )}
-            
-            <LazySection
-              key={`product-section-${product.id}`}
-              ref={(el) => {
-                // Store reference
-                if (el) productRefs.current[index] = el;
-              }}
-              id={`product-${product.id}`}
-              className="mb-16 md:mb-24 relative z-10"
-              rootMargin="500px"
-            >
-              <ProductCard
-                key={`product-card-${product.id}`}
-                product={product}
-                isActive={activeIndex === index}
-                panelPosition={index % 2 === 0 ? "right" : "left"}
-                index={index}
-                previousProductSold={previousProductSold}
-              />
-            </LazySection>
+      
+      {/* Products by Level */}
+      <div className="space-y-24 mt-16">
+        {/* Drop Selector - Positioned above the first level */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {availableDrops.map(drop => (
+              <button 
+                key={drop}
+                onClick={() => setSelectedDrop(drop)}
+                aria-pressed={selectedDrop === drop}
+                className={`px-4 py-2 rounded-md transition-colors duration-300 ${
+                  selectedDrop === drop 
+                    ? 'bg-black text-white dark:bg-white dark:text-black' 
+                    : 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700'
+                }`}
+              >
+                {drop}
+              </button>
+            ))}
           </div>
-        )
-      })}
+        </div>
+        {levels.map(level => (
+          <div key={level} className="mb-16 flex flex-col items-center">
+            <h3 className="text-xl font-semibold mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded-md">Nivel {level}</h3>
+            
+            {/* Centered container that will hold the products */}
+            <div className="w-full flex justify-center">
+              {/* Flexible-width grid with auto-fit to center items */}
+              <div className={`grid gap-6 w-full max-w-6xl mx-auto
+                grid-cols-1 
+                ${productsByLevel[level]?.length === 1 ? 'md:grid-cols-1 lg:grid-cols-1 md:max-w-md' : ''}
+                ${productsByLevel[level]?.length === 2 ? 'md:grid-cols-2 lg:grid-cols-2 md:max-w-3xl' : ''}
+                ${productsByLevel[level]?.length >= 3 ? 'md:grid-cols-2 lg:grid-cols-3' : ''}
+              `}>
+                {/* Check if productsByLevel[level] exists before mapping over it */}
+                {productsByLevel[level] && productsByLevel[level].map(product => {
+                  const isUnlocked = isProductUnlocked(product)
+                  const isSoldOut = !product.inStock || soldProducts[product.id];
+                  
+                  return (
+                    <LazySection
+                      key={`product-section-${product.id}`}
+                      ref={(el) => {
+                        // Store reference
+                        if (el) productRefs.current[level] = el;
+                      }}
+                      id={`product-${product.id}`}
+                      className="relative z-10 flex justify-center"
+                      rootMargin="500px"
+                    >
+                      <ProductCard 
+                        key={`product-card-${product.id}`}
+                        product={product} 
+                        soldOut={isSoldOut}
+                        locked={!isUnlocked}
+                        onProductSold={() => markProductAsSold(product.id)}
+                        isActive={activeIndex === productsByLevel[level].indexOf(product)}
+                        panelPosition={productsByLevel[level].indexOf(product) % 2 === 0 ? "right" : "left"}
+                      />
+                    </LazySection>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
