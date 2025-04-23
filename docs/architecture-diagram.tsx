@@ -23,29 +23,54 @@ export default function ArchitectureDiagram() {
     // Draw architecture diagram
     // This is a simplified version - you would typically use a proper diagramming library
 
-    // Draw boxes
-    drawBox(ctx, 100, 50, 600, 100, "#f0f9ff", "#3b82f6", "Next.js Frontend")
-    drawBox(ctx, 100, 200, 280, 150, "#f0fdf4", "#22c55e", "API Routes")
-    drawBox(ctx, 420, 200, 280, 150, "#fef2f2", "#ef4444", "Notion API")
-    drawBox(ctx, 100, 400, 600, 100, "#f5f3ff", "#8b5cf6", "Vercel Deployment")
+    // Draw main architectural boxes
+    drawBox(ctx, 100, 50, 600, 80, "#f0f9ff", "#3b82f6", "Next.js Frontend")
+    
+    // Draw drop system components
+    drawBox(ctx, 120, 150, 170, 70, "#fce7f3", "#ec4899", "DropSelector")
+    drawBox(ctx, 320, 150, 170, 70, "#ede9fe", "#8b5cf6", "ProductShowcase")
+    drawBox(ctx, 520, 150, 170, 70, "#fef3c7", "#f59e0b", "Level-Based Grouping")
+    
+    // Draw API and data layer
+    drawBox(ctx, 100, 250, 280, 120, "#f0fdf4", "#22c55e", "API Routes / Mock API")
+    drawBox(ctx, 420, 250, 280, 120, "#fef2f2", "#ef4444", "Notion Database")
+    
+    // Draw deployment
+    drawBox(ctx, 100, 400, 600, 80, "#f5f3ff", "#8b5cf6", "Vercel Deployment")
 
-    // Draw arrows
-    drawArrow(ctx, 240, 150, 240, 200)
-    drawArrow(ctx, 560, 150, 560, 200)
-    drawArrow(ctx, 380, 275, 420, 275)
-    drawArrow(ctx, 240, 350, 240, 400)
-    drawArrow(ctx, 560, 350, 560, 400)
+    // Draw arrows between components
+    // Frontend to drop system components
+    drawArrow(ctx, 200, 130, 200, 150)
+    drawArrow(ctx, 400, 130, 400, 150)
+    drawArrow(ctx, 600, 130, 600, 150)
+    
+    // Component interactions
+    drawArrow(ctx, 205, 185, 320, 185) // DropSelector to ProductShowcase
+    drawArrow(ctx, 405, 185, 520, 185) // ProductShowcase to Level Grouping
+    
+    // Drop system to API layer
+    drawArrow(ctx, 200, 220, 200, 250)
+    drawArrow(ctx, 400, 220, 400, 250)
+    drawArrow(ctx, 600, 220, 600, 250)
+    
+    // Between API and Notion
+    drawArrow(ctx, 380, 310, 420, 310)
+    
+    // To deployment
+    drawArrow(ctx, 240, 370, 240, 400)
+    drawArrow(ctx, 560, 370, 560, 400)
 
     // Add labels
     ctx.font = "12px Arial"
     ctx.fillStyle = "#000000"
     ctx.textAlign = "center"
 
-    ctx.fillText("User Requests", 240, 180)
-    ctx.fillText("Static Generation", 560, 180)
-    ctx.fillText("API Calls", 400, 260)
-    ctx.fillText("Deployment", 240, 380)
-    ctx.fillText("Deployment", 560, 380)
+    ctx.fillText("Drop Selection", 260, 165)
+    ctx.fillText("Product Display", 460, 165)
+    ctx.fillText("Unlocking Logic", 660, 165)
+    ctx.fillText("API Calls", 400, 290)
+    ctx.fillText("Deployment", 240, 385)
+    ctx.fillText("Deployment", 560, 385)
   }, [])
 
   return (

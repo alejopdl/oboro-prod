@@ -62,6 +62,11 @@ export default function FolderStructureDiagram() {
                 description: "API endpoint for fetching all products",
               },
               {
+                name: "mock-products.ts",
+                type: "file",
+                description: "Mock API endpoint with drop system data structure",
+              },
+              {
                 name: "producto",
                 type: "folder",
                 children: [
@@ -92,6 +97,18 @@ export default function FolderStructureDiagram() {
         description: "Reusable UI components",
         children: [
           {
+            name: "__tests__",
+            type: "folder",
+            description: "Component test files",
+            children: [
+              {
+                name: "drop-selector.test.tsx",
+                type: "file",
+                description: "Tests for the drop selector component",
+              },
+            ],
+          },
+          {
             name: "Navbar.jsx",
             type: "file",
             description: "Navigation bar component with search and theme toggle",
@@ -102,14 +119,19 @@ export default function FolderStructureDiagram() {
             description: "Footer component with links and social media",
           },
           {
-            name: "ProductCard.jsx",
+            name: "ProductCard.tsx",
             type: "file",
-            description: "Card component for displaying product previews",
+            description: "Card component for displaying product previews with locked state handling",
           },
           {
-            name: "ProductGrid.jsx",
+            name: "product-showcase.tsx",
             type: "file",
-            description: "Grid layout for displaying multiple product cards",
+            description: "Showcase component for displaying products by level with visual connectors",
+          },
+          {
+            name: "drop-selector.tsx",
+            type: "file",
+            description: "Drop selector component for switching between product collections",
           },
           {
             name: "ProductDetail.jsx",
@@ -129,9 +151,9 @@ export default function FolderStructureDiagram() {
         description: "Utility functions and API clients",
         children: [
           {
-            name: "notion.js",
+            name: "notion.ts",
             type: "file",
-            description: "Notion API client and data formatting utilities",
+            description: "Notion API client with drop system field mapping support",
           },
         ],
       },
@@ -148,6 +170,18 @@ export default function FolderStructureDiagram() {
         ],
       },
       {
+        name: "types",
+        type: "folder",
+        description: "TypeScript type definitions",
+        children: [
+          {
+            name: "product.ts",
+            type: "file",
+            description: "Product interface with drop system fields (level, blocked, dropId)",
+          },
+        ],
+      },
+      {
         name: "styles",
         type: "folder",
         description: "CSS and styling files",
@@ -156,6 +190,28 @@ export default function FolderStructureDiagram() {
             name: "globals.css",
             type: "file",
             description: "Global styles and Tailwind CSS imports",
+          },
+        ],
+      },
+      {
+        name: "docs",
+        type: "folder",
+        description: "Project documentation",
+        children: [
+          {
+            name: "drop-system.md",
+            type: "file",
+            description: "Documentation for the drop system implementation",
+          },
+          {
+            name: "notion-cms-guide.md",
+            type: "file",
+            description: "Guide for managing products in Notion CMS with drop system fields",
+          },
+          {
+            name: "notion-integration.md",
+            type: "file",
+            description: "Technical documentation for the Notion integration",
           },
         ],
       },

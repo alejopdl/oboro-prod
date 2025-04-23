@@ -23,20 +23,37 @@ export default function DataFlowDiagram() {
     // Draw data flow diagram
 
     // Draw components
-    drawComponent(ctx, 400, 80, "Notion Database", "#f0f9ff")
-    drawComponent(ctx, 200, 200, "Next.js API Routes", "#f0fdf4")
-    drawComponent(ctx, 600, 200, "getStaticProps / getServerSideProps", "#fef2f2")
-    drawComponent(ctx, 200, 320, "Client Components", "#f5f3ff")
-    drawComponent(ctx, 600, 320, "Server Components", "#fff7ed")
-    drawComponent(ctx, 400, 440, "User Interface", "#f8fafc")
+    drawComponent(ctx, 400, 60, "Notion Database", "#f0f9ff")
+    drawComponent(ctx, 200, 140, "Next.js API Routes", "#f0fdf4")
+    drawComponent(ctx, 600, 140, "Mock Products API", "#fef2f2")
+    drawComponent(ctx, 400, 220, "Server Components", "#fff7ed")
+    
+    // Draw drop system components
+    drawComponent(ctx, 250, 300, "DropSelector", "#ede9fe")
+    drawComponent(ctx, 550, 300, "ProductShowcase", "#fae8ff")
+    drawComponent(ctx, 400, 380, "Level-Based Product Grouping", "#fef3c7")
+    drawComponent(ctx, 400, 460, "User Interface", "#f8fafc")
 
     // Draw arrows
-    drawArrow(ctx, 400, 120, 250, 180, "Fetch Data")
-    drawArrow(ctx, 400, 120, 550, 180, "Build-time Fetch")
-    drawArrow(ctx, 250, 240, 250, 300, "API Response")
-    drawArrow(ctx, 550, 240, 550, 300, "Props")
-    drawArrow(ctx, 250, 360, 350, 420, "Render")
-    drawArrow(ctx, 550, 360, 450, 420, "Render")
+    // Database to API routes
+    drawArrow(ctx, 400, 100, 250, 120, "Fetch Data")
+    // Database to Mock API
+    drawArrow(ctx, 400, 100, 550, 120, "Schema Model")
+    
+    // APIs to Server Components
+    drawArrow(ctx, 250, 180, 350, 200, "API Response")
+    drawArrow(ctx, 550, 180, 450, 200, "Drop Data")
+    
+    // Server Components to Client Components
+    drawArrow(ctx, 350, 260, 250, 280, "Available Drops")
+    drawArrow(ctx, 450, 260, 550, 280, "Product Data")
+    
+    // Client interactions
+    drawArrow(ctx, 300, 340, 350, 360, "Drop Selection")
+    drawArrow(ctx, 500, 340, 450, 360, "Product Filtering")
+    
+    // Level grouping to UI
+    drawArrow(ctx, 400, 420, 400, 440, "Organized Products")
   }, [])
 
   return (
