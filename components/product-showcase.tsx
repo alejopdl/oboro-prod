@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
-import ProductCard from "./product-card"
+import ProductCard from "./ProductCard"
 import LazySection from "./lazy-section"
 import Connector from "./connector"
 import type { Product } from "@/types/product"
@@ -221,7 +221,11 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
             )}
             <LazySection
               key={`product-section-${product.id}`}
-              ref={(el) => (productRefs.current[index] = el)}
+              ref={(el) => {
+                // Store reference and return void (not the element itself)
+                if (el) productRefs.current[index] = el;
+                // TypeScript expects ref callbacks to return void
+              }}
               id={`product-${product.id}`}
               className="mb-16 md:mb-24 relative z-10"
               rootMargin="500px"

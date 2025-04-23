@@ -1,64 +1,81 @@
-// Purpose: Display individual product information in a card format
-import Image from 'next/image'
-import Link from 'next/link'
+"use client"
+
+import React, { useState } from 'react'
+import { default as Image } from 'next/image'
+import { default as Link } from 'next/link'
+import { motion } from 'framer-motion'
+import { config } from '@/data/config'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
 import { Product } from '../types/product'
 
 interface ProductCardProps {
   product: Product
+  isActive?: boolean
+  panelPosition?: string
+  index?: number
+  previousProductSold?: boolean
 }
 
-/**
- * Displays a product in a card format with image, name, price, and size
- * 
- * @param props - Component props containing product data
- * @returns JSX Element of the product card
- */
-import { FC } from 'react'
+const ProductCard = ({ product, isActive, panelPosition, index, previousProductSold }: ProductCardProps): React.ReactElement => {
+  const { id, name, price, images, category, soldOut, size } = product
+  const prefersReducedMotion = useReducedMotion()
+  const [imageLoaded, setImageLoaded] = useState(false)
 
-export const ProductCard: FC<ProductCardProps> = ({ product }) => {
-  const { name, price, size, images, soldOut } = product
-  
-  // Format price with Brazilian Real currency
-  const formattedPrice = new Intl.NumberFormat('pt-BR', {
+  // Format price according to locale and currency
+  const formattedPrice = new Intl.NumberFormat(config.locale, {
     style: 'currency',
-    currency: 'BRL'
+    currency: config.currency,
   }).format(price)
 
+  // For test purpose - force the component to render properly in Jest
+  const MotionComponent = typeof window !== 'undefined' ? motion.div : 'div';
+
   return (
-    <div className="group relative rounded-lg overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow duration-300">
-      {/* Image container with aspect ratio */}
-      <div className="relative aspect-square">
-        <Image
-          src={images[0]}
-          alt={name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-        {soldOut && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">Esgotado</span>
-          </div>
-        )}
-      </div>
-
-      {/* Product info */}
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">{name}</h3>
-        <div className="flex justify-between items-center">
-          <span className="text-lg font-bold text-gray-900">{formattedPrice}</span>
-          <span className="text-sm text-gray-600">{size}</span>
+    <MotionComponent
+      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: prefersReducedMotion ? 0.1 : 0.5 }}
+      className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl"
+    >
+      <Link href={`/produto/${id}`} className="block">
+        <div className="relative h-64 w-full overflow-hidden">
+          <div
+            className={`absolute inset-0 bg-gray-200 dark:bg-gray-700 ${imageLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+          />
+          <Image
+            src={images[0] || '/images/placeholder.jpg'}
+            alt={name}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className={`object-cover object-center group-hover:scale-105 transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImageLoaded(true)}
+          />
+          {soldOut && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">Agotado</span>
+            </div>
+          )}
         </div>
-      </div>
-
-      {/* Clickable overlay */}
-      <Link
-        href={`/produto/${product.id}`}
-        className="absolute inset-0"
-        aria-label={`Ver detalhes de ${name}`}
-      >
-        <span className="sr-only">Ver detalhes</span>
+        <div className="p-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">{name}</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{category}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Talle: {size}</p>
+            </div>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">{formattedPrice}</p>
+          </div>
+          <div className="mt-4">
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${!soldOut ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'}`}
+            >
+              {!soldOut ? 'Disponible' : 'Agotado'}
+            </span>
+          </div>
+        </div>
       </Link>
-    </div>
+    </MotionComponent>
   )
 }
+
+export default ProductCard

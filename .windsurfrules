@@ -1,0 +1,115 @@
+### PROJECT AWARENESS & CONTEXT
+- Always read 'PLANNING.md' at the start of every session to refresh architecture, goals, tech stack, and constraints.
+- Check 'TASK.md' before starting a task; if it isn’t listed, add it with a brief description and today’s date.
+- Keep the user journey clear: browse → filter/search → view detail → WhatsApp contact (no cart/checkout).
+- Respect hard requirements: high Core Web Vitals, WCAG 2.1 AA accessibility, strong SEO, full responsiveness, and modern‑browser support.
+- Build only scoped features (catalog + WhatsApp flow) while keeping the code flexible for future additions (auth, cart, payments).
+
+### CODE STRUCTURE & MODULARITY
+- Never create a file longer than 500 lines. If it approaches the limit, refactor into smaller modules or components.
+- Follow the prescribed project tree ('pages/', 'components/', 'lib/', 'data/', 'styles/', 'public/').
+- Use Next.js hybrid rendering: SSG for 'index.js' and 'productos.js'; SSR for dynamic search pages; CSR only where essential.
+- Write all code in TypeScript; create interfaces that mirror the Notion DB schema.
+- Enforce linting and formatting with ESLint and Prettier via Husky pre‑commit hooks.
+- Style exclusively with Tailwind CSS; add custom CSS only when utilities can’t express the design.
+- Add animations with Framer Motion, honoring prefers‑reduced‑motion.
+
+### TESTING & RELIABILITY
+- Always create unit tests for new utilities/components and integration or end‑to‑end tests for user flows.
+- Place tests in a mirrored 'tests/' tree; each feature needs:
+  - 1 happy‑path test
+  - 1 edge‑case test
+  - 1 failure‑case test
+- Run tests and linters in CI (GitHub Actions) on every pull request.
+- Catch runtime issues with an error tracker (e.g., Sentry) and address high‑frequency errors promptly.
+
+### TASK COMPLETION
+- Mark completed tasks in 'TASK.md' immediately after finishing them.
+- Log any discovered TODOs in 'TASK.md' under “Discovered During Work.”
+
+### STYLE & CONVENTIONS
+- Use TypeScript with no implicit 'any'.
+- Follow Airbnb/Next.js ESLint rules and auto‑fix with Prettier.
+- Write JSDoc/TS docstrings for every function or React component:
+  /**
+   * Brief summary.
+   *
+   * @param props - Component props.
+   * @returns JSX Element.
+   */
+
+### DOCUMENTATION & EXPLAINABILITY
+- Update 'README.md' whenever features, dependencies, or setup steps change.
+- Comment non‑obvious logic and include inline “// Reason:” notes explaining why, not just what.
+- Maintain a short CMS‑usage guide for editors alongside 'PLANNING.md'.
+
+### CMS INTEGRATION (NOTION)
+- Fetch product data only through server‑side API routes in 'pages/api/'; keep the Notion token in '.env'.
+- Query only needed properties (Name, Price, Description, Images, Category, InStock, Size).
+- Use ISR or webhooks to revalidate static pages after Notion updates.
+- Never hard‑code product content—Notion is the single source of truth.
+
+### SEO STRATEGY
+- Pre‑render SEO‑critical pages (SSG/SSR).
+- Set descriptive <title> and <meta name="description"> tags; embed JSON‑LD product data.
+- Generate and maintain an up‑to‑date sitemap; add canonical links.
+- Use semantic HTML and meaningful alt text for every image.
+
+### PERFORMANCE OPTIMIZATION
+- Serve all images with the Next.js <Image> component (WebP/AVIF, lazy load).
+- Split code with dynamic imports; defer non‑critical scripts.
+- Cache API responses and client data (SWR or React Query).
+- Monitor Core Web Vitals and treat regressions as bugs.
+
+### DEPLOYMENT & INFRASTRUCTURE
+- Host on Vercel; every push creates a preview URL, and merging to 'main' auto‑deploys to production.
+- Store secrets in Vercel environment variables; include '.env.local.example' for onboarding.
+- Validate preview builds before merging; production must stay green.
+- Keep serverless functions in 'pages/api/' stateless and fast (within Vercel limits).
+
+### MONITORING & ANALYTICS
+- Integrate Google Analytics (or Plausible) to track product views, filter use, and WhatsApp clicks.
+- Review Vercel Analytics and Sentry dashboards each sprint; convert insights into backlog items.
+- Anonymize IP addresses and request cookie consent where required by law.
+
+### AI BEHAVIOR RULES
+- Never assume missing context—ask questions if uncertain.
+- Never hallucinate libraries or APIs; use only documented, verified packages.
+- Confirm file paths and module names exist before referencing them.
+- Never delete or overwrite existing code unless explicitly instructed or the change is listed in 'TASK.md'.
+
+
+### LEARNING & GUIDANCE
+- Tell Cascade that *I am a beginner*. When code is shown, also provide a short, plain‑English explanation of what each section does and why it is needed.
+- Break answers into **bite‑sized steps**: concept → small code sample → quick recap. Ask me to confirm (“Got it? 1/2/3”) before moving on.
+- When I ask a “how do I…?” question, first show the *simplest* working example, then an optional “next‑level” enhancement.
+- If I seem stuck, give **one hint at a time** instead of the full solution, so I learn to debug on my own.
+
+### CODE STYLE & SIMPLICITY
+- Keep every example under **30 lines** so it’s easy to digest.
+- Add brief **inline comments** for any non‑obvious line.
+- Prefer **self‑describing names** (e.g., `isLoading`, `userList`) and avoid abbreviations.
+- Ignore advanced ESLint edge‑cases unless I ask.
+
+### PROJECT STRUCTURE (FOR BEGINNERS)
+- Show file paths explicitly (e.g., `pages/index.tsx`, `components/Counter.tsx`) so I know **where** code belongs.
+- Add a one‑line comment at the top of every new file: `// Purpose: …`.
+- Use **named exports** for components.
+
+### TESTING HABITS
+- For each new utility or component, create **one Jest test**: happy path, edge case.
+- Explain in one sentence *what the test protects*.
+- Outline a test first (TDD) before writing the code.
+
+### GETTING UNSTUCK
+- Prompt this 3‑step checklist for any error: read the stack trace → locate file & line → form a hypothesis and ask for confirmation.
+- Suggest common tools: VS Code debugger, React DevTools, `console.log`, browser network tab.
+
+### PRACTICE & REFLECTION
+- After finishing a task, write **one sentence** in `logs/learning-journal.md` about what was learned.
+- Every Friday, review that file and pick one concept to revisit next week.
+
+### BEGINNER AI GUIDE
+- Default to **clear, beginner‑friendly language**; explain jargon on first use.
+- Provide **copy‑paste‑ready snippets**—no ellipses (`...`) or missing imports.
+- Cite official docs or reputable tutorials for further reading.

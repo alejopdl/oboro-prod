@@ -57,13 +57,16 @@ The frontend will be built using Next.js with a hybrid rendering approach:
 - **Responsive Design**: Must work on all devices from mobile to desktop
 - **Browser Compatibility**: Must support modern browsers (last 2 versions)
 - **Content Management**: Must be manageable by non-technical users through Notion
+- **Localization**: Content must use Spanish text for the Argentinian audience (e.g., "Agotado" instead of "Esgotado")
+- **Next.js 15 Compatibility**: Must follow latest Next.js 15.2.4 best practices and avoid deprecated options
 
 ## Tech Stack
 
 ### Frontend
 
-- **Next.js**: React framework for hybrid rendering (SSG/SSR)
-- **React**: UI library
+- **Next.js 15.2.4**: React framework for hybrid rendering (SSG/SSR) 
+- **React 18**: UI library
+- **TypeScript**: Type safety and improved developer experience
 - **Tailwind CSS**: Utility-first CSS framework for styling
 - **Framer Motion**: Animation library for UI interactions
 - **next-themes**: Theme management (dark/light mode)
@@ -84,12 +87,14 @@ The frontend will be built using Next.js with a hybrid rendering approach:
 - **TypeScript**: Type safety and developer experience
 - **ESLint**: Code quality and consistency
 - **Prettier**: Code formatting
+- **Jest**: Testing framework
+- **React Testing Library**: Component testing
 - **Husky**: Git hooks for pre-commit checks
 - **VS Code**: Recommended IDE with extensions for React, Tailwind, and ESLint
 
 ## Project Structure
 
-\`\`\`
+```
 ├── pages/                  # Next.js pages and API routes
 │   ├── api/                # API endpoints
 │   │   ├── productos.js    # Products listing API
@@ -102,13 +107,18 @@ The frontend will be built using Next.js with a hybrid rendering approach:
 ├── components/             # Reusable UI components
 │   ├── Navbar.jsx          # Navigation bar
 │   ├── Footer.jsx          # Footer component
-│   ├── ProductCard.jsx     # Product card component
-│   ├── ProductGrid.jsx     # Product grid layout
+│   ├── ProductCard.tsx     # Product card component (TypeScript)
+│   ├── ProductGrid.tsx     # Product grid layout (TypeScript)
+│   ├── product-showcase.tsx # Product showcase component
+│   ├── lazy-section.tsx    # Lazy loading section component
 │   └── ProductDetail.jsx   # Product detail component
+├── tests/                  # Test utilities and mock data
+│   ├── utils.ts            # Test utilities and mock data
+│   └── mocks/              # Component mocks for testing
 ├── lib/                    # Utility functions
 │   └── notion.js           # Notion API client
 ├── data/                   # Data and configuration
-│   └── config.js           # Site configuration
+│   └── config.ts           # Site configuration
 ├── styles/                 # CSS and styling
 │   └── globals.css         # Global styles
 ├── public/                 # Static assets
@@ -116,8 +126,17 @@ The frontend will be built using Next.js with a hybrid rendering approach:
 ├── .env.local.example      # Example environment variables
 ├── next.config.js          # Next.js configuration
 ├── tailwind.config.js      # Tailwind CSS configuration
+├── jest.setup.js           # Jest test configuration
 └── package.json            # Project dependencies
-\`\`\`
+```
+
+### File Naming Conventions
+
+To maintain consistency across the project:
+
+- Use **CamelCase for component files**: `ProductCard.tsx`, `ProductGrid.tsx`
+- Use **kebab-case for import paths** when referencing components: `import ComponentName from "./component-name"`
+- All file references should match the actual case of the file on disk to ensure cross-platform compatibility
 
 ## Notion Database Structure
 

@@ -4,6 +4,7 @@ export interface Product {
   price: number
   size: string
   images: string[]
-  locked?: boolean
-  soldOut?: boolean
+  soldOut: boolean
+  description: string
+  category: string
 }

@@ -15,16 +15,37 @@
 - [x] Create ProductCard component
 - [x] Create ProductGrid component
 
+### Sprint 2: Testing and Component Fixes (Added 2025-04-22)
+
+- [x] Fix component export issues
+  - [x] Review and update ProductCard export statement
+  - [x] Review and update ProductGrid export statement
+  - [x] Ensure all component imports use correct paths
+- [x] Fix test environment setup
+  - [x] Verify Next.js mocks are properly configured
+  - [x] Check Jest configuration for module resolution
+  - [x] Update test utilities if needed
+- [x] Address test failures
+  - [x] Fix ProductCard render tests (using Spanish "Agotado" text for Argentinian audience)
+  - [x] Fix ProductGrid render tests
+  - [x] Verify all component props are correctly typed
+- [x] Create documentation
+  - [x] Implement documentation pages in /pages/docs
+  - [x] Create architecture documentation
+  - [x] Create data flow documentation
+  - [x] Create component documentation
+  - [x] Organize diagrams in /docs folder
+
 ## Milestones
 
 ### Milestone 1: Project Setup and Notion Integration
 - **Due Date**: [Insert Date]
-- **Status**: In Progress
+- **Status**: Complete
 - **Description**: Set up the project structure, configure the development environment, and implement the Notion API integration.
 
 ### Milestone 2: Core UI Components and Pages
 - **Due Date**: [Insert Date]
-- **Status**: Not Started
+- **Status**: In Progress
 - **Description**: Develop the core UI components and pages, including the product listing, product detail, and homepage.
 
 ### Milestone 3: Search, Filtering, and Responsive Design
@@ -40,15 +61,13 @@
 ## Task Backlog
 
 ### Project Setup
-- [ ] Create `.env.local` file with required environment variables
-- [ ] Set up Husky for pre-commit hooks
-- [ ] Configure VS Code settings for the project
-- [ ] Set up continuous integration with GitHub Actions
+- [x] Create `.env.local` file with required environment variables
+- [x] Set up Husky for pre-commit hooks
 
 ### Notion CMS Integration
-- [ ] Create Notion integration and get API key
-- [ ] Design and create Notion database for products
-- [ ] Implement Notion API client in `lib/notion.js`
+- [x] Create Notion integration and get API key
+- [x] Design and create Notion database for products
+- [x] Implement Notion API client in `lib/notion.js`
 - [ ] Create utility functions for data transformation
 - [ ] Implement error handling for API requests
 - [ ] Add caching strategy for Notion data
@@ -56,8 +75,8 @@
 ### UI Components
 - [ ] Design and implement Navbar component
 - [ ] Design and implement Footer component
-- [ ] Create ProductCard component
-- [ ] Create ProductGrid component
+- [x] Create ProductCard component
+- [x] Create ProductGrid component
 - [ ] Design and implement ProductDetail component
 - [ ] Create Loading and Error state components
 - [ ] Implement theme toggle (dark/light mode)
@@ -118,18 +137,22 @@
 - [ ] Configure Vercel Analytics
 
 ### Testing
-- [ ] Write unit tests for utility functions
+- [x] Write unit tests for utility functions
 - [ ] Add integration tests for API routes
-- [ ] Implement end-to-end tests for critical user flows
+- [x] Implement end-to-end tests for critical user flows
 - [ ] Test performance with Lighthouse
 - [ ] Cross-browser testing
 
 ### Documentation
 - [ ] Create README.md with setup instructions
-- [ ] Document Notion database structure
-- [ ] Add inline code comments
-- [ ] Create user guide for content management
+- [x] Document Notion database structure
+- [x] Add inline code comments
+- [x] Create user guide for content management
 - [ ] Document deployment process
+- [x] Create comprehensive documentation pages
+- [x] Add data flow diagrams
+- [x] Document component architecture
+- [x] Create component usage guides
 
 ## Completed Tasks
 

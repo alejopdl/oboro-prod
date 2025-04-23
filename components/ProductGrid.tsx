@@ -1,25 +1,37 @@
-// Purpose: Display a responsive grid of product cards
+import React from 'react'
 import { Product } from '../types/product'
-import { ProductCard } from './ProductCard'
+import ProductCard from './ProductCard'
 
 interface ProductGridProps {
   products: Product[]
 }
 
 /**
- * Displays a responsive grid of product cards
- * 
- * @param props - Component props containing array of products
- * @returns JSX Element of the product grid
+ * ProductGrid component renders a grid of product cards
+ *
+ * @param props - Component props containing products array
+ * @returns JSX Element
  */
-import { FC } from 'react'
+const ProductGrid = ({ products }: ProductGridProps): React.ReactElement => {
+  // For empty product lists, render an empty grid with the data-testid
+  if (products.length === 0) {
+    return (
+      <div data-testid="product-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 py-8">
+        {/* Empty state */}
+      </div>
+    )
+  }
 
-export const ProductGrid: FC<ProductGridProps> = ({ products }) => {
+  // Normal grid with products
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 py-8">
+    <div data-testid="product-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 py-8">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <div key={product.id} role="listitem">
+          <ProductCard product={product} />
+        </div>
       ))}
     </div>
   )
 }
+
+export default ProductGrid
