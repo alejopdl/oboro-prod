@@ -1,0 +1,7 @@
+# Ignore these files during Vercel deployment
+/pages/api/csv-products.ts
+.git
+node_modules
+.next
+.vercel
+.swc

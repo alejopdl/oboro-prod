@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+// Production-ready Next.js configuration
+// Optimized for Core Web Vitals and Vercel deployment
 const nextConfig = {
   reactStrictMode: true,
   images: {
