@@ -3,6 +3,7 @@
   "buildCommand": "npm run vercel-build",
   "framework": "nextjs",
   "regions": ["dub1"],
+  "ignoreCommand": "find ./pages -type f -not -path \"*/\\.git/*\" -name \"csv-products.ts\" -exec echo \"Ignoring {}\" \\;",
   "headers": [
     {
       "source": "/fonts/(.*)",
