@@ -5,16 +5,19 @@ import BackToTop from "@/components/back-to-top"
 import SkipLink from "@/components/skip-link"
 import ErrorBoundary from "@/components/error-boundary"
 import ResourcePrefetcher from "@/components/resource-prefetcher"
-import DropSelector from "@/components/drop-selector" // Import the DropSelector component
+import { ProductNavigationProvider } from "@/contexts/product-navigation-context"
+import LogoLoading from "@/components/logo-loading"
 // Use fetch for API instead of direct Notion integration
 // This is a simpler approach for beginners
 
 // Add a loading component to show while data is being fetched
 function LoadingProducts() {
   return (
-    <div className="flex items-center justify-center min-h-[50vh]">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-      <p className="ml-4 text-lg font-medium">Cargando productos...</p>
+    <div className="flex flex-col items-center justify-center min-h-[50vh] py-8">
+      <div className="mb-4">
+        <LogoLoading size="lg" />
+      </div>
+      <p className="text-lg font-medium">Cargando productos...</p>
     </div>
   )
 }
@@ -32,9 +35,20 @@ function ErrorDisplay({ error }: { error: Error }) {
   )
 }
 
-// Use async/await for server component data fetching (no searchParams needed at this level)
-export default async function Home() {
+// Use async/await for server component data fetching
+export default async function Home({
+  searchParams
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
   try {
+    // Properly await searchParams before accessing properties (Next.js 15 requirement)
+    const params = await searchParams
+    
+    // Get dropId and level from search params
+    const dropId = params.dropId as string | undefined
+    const level = params.level ? Number(params.level) : undefined
+
     // Fetch products from our direct Notion API which properly shows all levels and drops
     // This endpoint has minimal processing to ensure we get the full variety from Notion
     const response = await fetch('http://localhost:3000/api/notion-direct', { 
@@ -71,23 +85,24 @@ export default async function Home() {
     const data = await response.json() as ApiResponse;
     const products = data.products;
     
-    // Extract all available drop IDs from products (now with proper typing)
+    // Extract all available drop IDs from products
     const availableDrops = [...new Set(products.map(product => product.dropId))] as string[];
 
     return (
       <>
         <SkipLink />
         <ErrorBoundary>
-          <main id="main-content" className="min-h-screen">
-            <ResourcePrefetcher products={products} />
-            <ChladniBackground />
-            <Header />
-            <ProductShowcase 
-              products={products} 
-              availableDrops={availableDrops}
-            />
-            <BackToTop />
-          </main>
+          {/* Override the empty ProductNavigationProvider from layout with actual drop data */}
+          <ProductNavigationProvider availableDrops={availableDrops}>
+            <main id="main-content" className="min-h-screen">
+              <ResourcePrefetcher products={products} />
+              <ChladniBackground />
+              <Header />
+              {/* No longer need to pass drop data directly to ProductShowcase */}
+              <ProductShowcase products={products} />
+              <BackToTop />
+            </main>
+          </ProductNavigationProvider>
         </ErrorBoundary>
       </>
   )
@@ -99,12 +114,15 @@ export default async function Home() {
       <>
         <SkipLink />
         <ErrorBoundary>
-          <main id="main-content" className="min-h-screen">
-            <ChladniBackground />
-            <Header />
-            <ErrorDisplay error={error instanceof Error ? error : new Error('Error desconocido al cargar los productos')} />
-            <BackToTop />
-          </main>
+          {/* Even in error state, use ProductNavigationProvider with empty drops */}
+          <ProductNavigationProvider availableDrops={[]}>
+            <main id="main-content" className="min-h-screen">
+              <ChladniBackground />
+              <Header />
+              <ErrorDisplay error={error instanceof Error ? error : new Error('Error desconocido al cargar los productos')} />
+              <BackToTop />
+            </main>
+          </ProductNavigationProvider>
         </ErrorBoundary>
       </>
     )

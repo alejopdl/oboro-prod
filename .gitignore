@@ -9,6 +9,7 @@ node_modules
 # next.js
 /.next/
 /out/
+.swc
 
 # production
 /build
@@ -21,9 +22,13 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # local env files
+.env
 .env*.local
+!.env.example
+!.env.local.example
 
 # vercel
 .vercel
@@ -35,7 +40,17 @@ next-env.d.ts
 # IDE
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
 
 # Temporary files
 *.log
 *.csv
+tmp/
+.cache/
+
+# Logs
+logs
+
+# System Files
+Thumbs.db

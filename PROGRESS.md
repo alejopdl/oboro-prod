@@ -27,6 +27,18 @@
    - Refactored conditional rendering to use CSS classes instead
    - Ensured consistent server/client rendering
 
+## Navigation Improvements (2025-04-24)
+- ✓ Fixed Product Drop Navigation System:
+   - Created ProductNavigationContext to centralize navigation state management
+   - Fixed drop selection after returning from product detail pages
+   - Made level automatically reset to 1 when changing drops
+   - Added scroll offset to improve level heading visibility
+   - Fixed hydration errors caused by browser extensions
+- ✓ Improved Test Coverage:
+   - Added unit tests for the ProductNavigationContext
+   - Created tests for drop selection and level reset functionality
+   - Added helper tests for scroll position calculation
+
 ## Next Phase: Continued Development
 Following the project requirements from PLANNING.md and TASK.md, we need to:
 

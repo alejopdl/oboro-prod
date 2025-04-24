@@ -1,6 +1,6 @@
-# oBoRo - Next.js Product Listing Site
+# oBoRo - Production E-commerce Site
 
-A modern, responsive e-commerce product listing website built with Next.js and Notion as a headless CMS.
+A modern, responsive e-commerce product listing website built with Next.js 15.2.4 and Notion as a headless CMS. This is the production repository optimized for Vercel deployment.
 
 ## Setup
 

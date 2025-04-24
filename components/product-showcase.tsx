@@ -13,22 +13,37 @@ import { preloadImages } from "../services/image-service"
 import { Checkbox } from "./ui/checkbox"
 import { useTheme } from "next-themes"
 import { createLogger } from "../lib/logger"
+import { useProductNavigation } from "../contexts/product-navigation-context"
 
 // Create a context-specific logger for this component
 const log = createLogger('ProductShowcase')
 
+// Simplified props interface - no longer need to manage navigation state in component
+interface ProductShowcaseProps {
+  products: Product[];
+}
+
 /**
  * Product showcase component that displays products in a visually appealing layout
  * with animations, connectors between products, and lazy loading.
+ * Uses ProductNavigationContext for drop/level selection and filters.
  * 
  * @param props - Component props
  * @param props.products - Array of all product objects
- * @param props.availableDrops - Array of available drop IDs
  * @returns JSX Element - The product showcase component
  */
-export default function ProductShowcase({ products, availableDrops }: { products: Product[], availableDrops: string[] }) {
-  // State for hiding out-of-stock products
-  const [hideOutOfStock, setHideOutOfStock] = useState(false)
+export default function ProductShowcase({ 
+  products
+}: ProductShowcaseProps) {
+  // Use the product navigation context instead of local state
+  const { 
+    selectedDrop, 
+    selectedLevel,
+    setDrop,
+    setLevel,
+    hideOutOfStock,
+    setHideOutOfStock 
+  } = useProductNavigation()
   
   // Get current theme to listen for changes
   const { theme } = useTheme()
@@ -39,7 +54,7 @@ export default function ProductShowcase({ products, availableDrops }: { products
   const [soldProducts, setSoldProducts] = useState<Record<string, boolean>>({})
   
   // Store references to each product section for positioning connectors
-  const productRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const productRefs = useRef<Record<string, HTMLDivElement | null>>({})  
   
   // Get current scroll position from context
   const { scrollY } = useScroll()
@@ -50,24 +65,19 @@ export default function ProductShowcase({ products, availableDrops }: { products
   // Track if component is mounted (client-side only)
   const [mounted, setMounted] = useState(false)
   
-  // Add state for selected drop
-  const [selectedDrop, setSelectedDrop] = useState<string>('')
+  // Reference to track if initial scroll has happened
+  const initialScrollDone = useRef(false)
   
-  // Set mounted state after component mounts and initialize selected drop
+  // Set mounted state after component mounts
   useEffect(() => {
     setMounted(true)
-    
-    // Initialize selected drop to the first available drop
-    if (availableDrops.length > 0 && selectedDrop === '') {
-      setSelectedDrop(availableDrops[0])
-    }
-  }, [availableDrops, selectedDrop])
+  }, [])
   
   // Reset 'hideOutOfStock' when theme changes
   useEffect(() => {
     // Reset to default (unchecked) when theme changes
     setHideOutOfStock(false);
-  }, [theme])
+  }, [theme, setHideOutOfStock])
 
   // Preload first product images
   useEffect(() => {
@@ -91,8 +101,6 @@ export default function ProductShowcase({ products, availableDrops }: { products
     })
     setSoldProducts(initialSoldState)
   }, [products])
-  
-  // Note: productsByLevel and levels are now created using filteredProducts above
 
   // Function to mark a product as sold
   const markProductAsSold = (productId: string) => {
@@ -106,8 +114,6 @@ export default function ProductShowcase({ products, availableDrops }: { products
       return newState;
     })
   }
-
-  // We'll move this useEffect after filteredProducts is defined
 
   // Helper function to determine if a product is unlocked
   function isProductUnlocked(product: Product): boolean {
@@ -246,8 +252,6 @@ export default function ProductShowcase({ products, availableDrops }: { products
                 </p>
               </div>
             </motion.div>
-
-            {/* Collection identifier removed as requested */}
           </motion.div>
         )}
       </div>
@@ -270,15 +274,27 @@ export default function ProductShowcase({ products, availableDrops }: { products
     
     // Preload the images
     preloadImages(imageUrls);
+    
+    // Reset scroll position when drop changes
+    initialScrollDone.current = false;
   }, [selectedDrop, products]);
 
-  // Filter products by the selected drop
-  const filteredProducts = selectedDrop ? 
-    products.filter(product => product.dropId === selectedDrop) : 
-    [];
+  // Filter products by the selected drop with debug logging
+  const filteredProducts = useMemo(() => {
+    if (!selectedDrop) return [];
+    
+    const filtered = products.filter(product => product.dropId === selectedDrop);
+    log.info(`Filtered products for ${selectedDrop}: ${filtered.length} products found`);
+    return filtered;
+  }, [products, selectedDrop]);
+
+  // Apply hide out-of-stock filter if enabled
+  const displayProducts = hideOutOfStock
+    ? filteredProducts.filter(product => !(product.soldOut || soldProducts[product.id]))
+    : filteredProducts;
 
   // Group filtered products by level
-  const productsByLevel = filteredProducts.reduce((acc, product) => {
+  const productsByLevel = displayProducts.reduce((acc, product) => {
     const level = product.level
     if (!acc[level]) acc[level] = []
     acc[level].push(product)
@@ -338,6 +354,65 @@ export default function ProductShowcase({ products, availableDrops }: { products
     return () => window.removeEventListener("scroll", handleScroll);
   }, []); // Empty dependency array to avoid re-registering on every render
 
+  // Effect to scroll to selected level if specified
+  useEffect(() => {
+    // Only scroll once and only if mounted, selectedLevel exists, and a drop is selected
+    if (
+      mounted && 
+      selectedLevel && 
+      selectedDrop && 
+      !initialScrollDone.current
+    ) {
+      // Find the element for this level
+      const levelElement = document.getElementById(`level-${selectedLevel}`);
+      if (levelElement) {
+        // Set a small timeout to ensure everything is rendered properly
+        setTimeout(() => {
+          // Don't use scrollIntoView directly as it doesn't account for fixed headers
+          // Instead, calculate the offset manually and use window.scrollTo
+          const rect = levelElement.getBoundingClientRect();
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          
+          // Add an offset (100px) to account for the header height
+          const targetPosition = scrollTop + rect.top - 100;
+          
+          // Scroll to the position with a smooth behavior
+          window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+          });
+          log.info(`Scrolled to level ${selectedLevel}`);
+          initialScrollDone.current = true;
+        }, 500);
+      }
+    }
+  }, [mounted, selectedLevel, selectedDrop]);
+
+  // Update selectedLevel in context when active elements change
+  useEffect(() => {
+    if (mounted && selectedDrop) {
+      // Determine current level from active elements
+      const activeElements = document.querySelectorAll('[data-active="true"]');
+      let currentLevel: number | undefined;
+      
+      activeElements.forEach(el => {
+        const levelId = el.closest('[id^="level-"]')?.id;
+        if (levelId) {
+          const levelNum = parseInt(levelId.replace('level-', ''));
+          if (!isNaN(levelNum)) {
+            currentLevel = levelNum;
+          }
+        }
+      });
+
+      // Update level in context instead of directly manipulating URL
+      if (currentLevel && currentLevel !== selectedLevel) {
+        setLevel(currentLevel);
+        log.info(`Updated level in context to: ${currentLevel}`);
+      }
+    }
+  }, [mounted, selectedDrop, activeIndex, selectedLevel, setLevel]);
+
   return (
     <div className="relative w-full max-w-6xl mx-auto px-4 py-16 md:py-24">
       {/* Introduction Card */}
@@ -348,15 +423,24 @@ export default function ProductShowcase({ products, availableDrops }: { products
         {/* Drop Selector - Positioned above the first level */}
         <div className="flex flex-col items-center mb-12 w-full py-6 bg-white/20 dark:bg-black/20 backdrop-blur-sm rounded-lg">
           <div className="flex flex-wrap gap-3 justify-center">
-            {availableDrops.map(drop => (
-              <button 
+            {/* Get available drops from products since we're not receiving them as props anymore */}
+            {[...new Set(products.map(p => p.dropId))].map(drop => (
+              <button
                 key={drop}
-                onClick={() => setSelectedDrop(drop)}
-                aria-pressed={selectedDrop === drop}
-                className={`px-5 py-3 text-lg font-medium rounded-md transition-colors duration-300 ${
-                  selectedDrop === drop 
-                    ? 'bg-black text-white dark:bg-white dark:text-black' 
-                    : 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700'
+                onClick={() => {
+                  // Use the setDrop function from context
+                  log.info(`Changing drop from ${selectedDrop} to ${drop}`);
+                  
+                  // Update drop in context
+                  setDrop(drop);
+                  
+                  // Also reset filters
+                  setHideOutOfStock(false);
+                }}
+                className={`px-6 py-3 text-lg rounded-full shadow-md transition-all duration-300 ${
+                  selectedDrop === drop
+                    ? "bg-black text-white dark:bg-white dark:text-black font-bold ring-2 ring-offset-2 ring-black dark:ring-white"
+                    : "bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
                 }`}
               >
                 {drop}
@@ -364,89 +448,147 @@ export default function ProductShowcase({ products, availableDrops }: { products
             ))}
           </div>
           
-          <div className="flex items-center space-x-3 mt-6">
-            <Checkbox 
-              id="hide-out-of-stock" 
-              checked={hideOutOfStock}
-              onCheckedChange={(checked: boolean | 'indeterminate') => {
-                setHideOutOfStock(checked === true)
-              }}
-              className="border-black dark:border-white h-5 w-5"
-            />
-            <label 
-              htmlFor="hide-out-of-stock"
-              className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-            >
-              Ocultar agotados
+          <div className="mt-4">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <Checkbox
+                checked={hideOutOfStock}
+                onCheckedChange={(checked) => setHideOutOfStock(checked === true)}
+                className={`${hideOutOfStock ? 'bg-black dark:bg-white border-black dark:border-white' : 'bg-white dark:bg-gray-800'}`}
+              />
+              <span className="text-sm font-medium">Ocultar productos agotados</span>
             </label>
           </div>
         </div>
-        {levels.map(level => {
-          // Check if this level has any visible products (not sold out or not filtered)
-          const hasVisibleProducts = productsByLevel[level] && productsByLevel[level].some(product => {
-            const isSoldOut = !product.inStock || soldProducts[product.id];
-            // If hideOutOfStock is true and product is sold out, it's not visible
-            return !(hideOutOfStock && isSoldOut);
-          });
-          
-          // Skip rendering this entire level section if there are no visible products
-          if (!hasVisibleProducts) return null;
-          
-          return (
-          <div key={level} className="mb-16 flex flex-col items-center">
-            <h3 className="text-xl font-semibold mb-4 bg-black/80 dark:bg-white/80 text-white dark:text-black px-3 py-2 rounded-md inline-flex items-center gap-1">
-              <ArrowUpCircle className="h-4 w-4" />
-              <span>Nivel {level}</span>
-            </h3>
+        
+        {/* Render each level */}
+        {levels.length > 0 ? (
+          levels.map((level, levelIndex) => {
+            const productsInLevel = productsByLevel[level] || [];
             
-            {/* Centered container that will hold the products */}
-            <div className="w-full flex justify-center relative">
-              {/* Level indicator - visual line through the center */}
-              <div className="absolute left-1/2 h-full -translate-x-1/2 w-1 bg-gradient-to-b from-black/0 via-black/10 to-black/0 dark:from-white/0 dark:via-white/10 dark:to-white/0 -z-10"></div>
-              
-              {/* Horizontal flex container for single row layout */}
-              <div className="flex flex-wrap md:flex-nowrap justify-center gap-10 w-full max-w-[90rem] mx-auto overflow-x-auto pb-8 hide-scrollbar">
-                {/* Add a CSS class to hide the scrollbar but keep functionality */}
-                {/* Check if productsByLevel[level] exists before mapping over it */}
-                {productsByLevel[level] && productsByLevel[level].map(product => {
-                  const isUnlocked = isProductUnlocked(product)
-                  const isSoldOut = !product.inStock || soldProducts[product.id];
-                  
-                  // Skip this product if it's sold out and hideOutOfStock is true
-                  if (hideOutOfStock && isSoldOut) {
-                    return null;
-                  }
-                  
-                  return (
-                    <LazySection
-                      key={`product-section-${product.id}`}
-                      ref={(el) => {
-                        // Store reference with a unique ID combining level and product ID
-                        if (el) productRefs.current[`${level}-${product.id}`] = el;
-                      }}
-                      id={`product-${product.id}`}
-                      className="relative z-10 flex justify-center shrink-0"
-                      rootMargin="500px"
-                    >
-                      <ProductCard 
-                        key={`product-card-${product.id}`}
-                        product={product} 
-                        soldOut={isSoldOut}
-                        locked={!isUnlocked}
-                        onProductSold={() => markProductAsSold(product.id)}
-                        isActive={activeIndex === productsByLevel[level].indexOf(product)}
-                        panelPosition={productsByLevel[level].indexOf(product) % 2 === 0 ? "right" : "left"}
-                      />
-                    </LazySection>
-                  )
-                })}
+            // Skip rendering empty levels if hiding out-of-stock
+            if (productsInLevel.length === 0) return null;
+            
+            // Check if all products in this level are locked
+            const allLocked = productsInLevel.every(product => isProductLocked(product));
+            
+            return (
+              <div key={`level-${level}`} id={`level-${level}`} className="relative">
+                <motion.h2
+                  initial={{ opacity: 0, x: prefersReducedMotion ? 0 : -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: prefersReducedMotion ? 0.2 : 0.8 }}
+                  className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 inline-block relative z-20 bg-white/70 dark:bg-black/70 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm"
+                >
+                  Nivel {level}
+                </motion.h2>
+        
+                {/* Show lock icon next to title for levels that are all locked */}
+                {allLocked && (
+                  <div className="inline-flex items-center justify-center ml-4">
+                    <div className="bg-red-800 rounded-full p-1 inline-flex">
+                      <Lock className="h-5 w-5 text-white" />
+                    </div>
+                  </div>
+                )}
+        
+                {/* Products in this level */}
+                <div className="relative">
+                  <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-300 dark:bg-gray-700"></div>
+        
+                  {/* Map products in this level */}
+                  {productsInLevel.map((product, productIndex) => {
+                    // Product is locked if not unlocked
+                    const locked = isProductLocked(product);
+                    // Is this product sold out?
+                    const soldOut = product.soldOut || soldProducts[product.id];
+                    // Is this the first product in the level?
+                    const isFirst = productIndex === 0;
+                    // Is the previous product sold?
+                    const previousProductSold =
+                      productIndex > 0 ? productsByLevel[level][productIndex - 1].soldOut || soldProducts[productsByLevel[level][productIndex - 1].id] : false;
+                    // Position relative to timeline (alternating)
+                    const position = productIndex % 2 === 0 ? "right" : "left";
+        
+                    return (
+                      <div
+                        key={product.id}
+                        ref={(el) => {
+                          // Store ref without returning a value (fixing TypeScript error)
+                          productRefs.current[`level-${product.id}`] = el
+                        }}
+                        className="relative"
+                      >
+                        {/* Only render connectors for products after the first one */}
+                        {!isFirst && (
+                          <LazySection>
+                            <Connector 
+                              startRef={productRefs.current[`level-${productsByLevel[level][productIndex - 1].id}`]} 
+                              endRef={productRefs.current[`level-${product.id}`]} 
+                              isActive={true}
+                              id={`connector-${level}-${productIndex}`}
+                            />
+                          </LazySection>
+                        )}
+        
+                        <div
+                          className={`relative mb-16 flex items-center justify-center ${
+                            position === "left" ? "flex-row-reverse" : "flex-row"
+                          }`}
+                        >
+                          <div
+                            className={`absolute left-1/2 w-6 h-6 bg-white dark:bg-black border-2 ${
+                              soldOut
+                                ? "border-red-500 dark:border-red-400"
+                                : locked
+                                ? "border-gray-400 dark:border-gray-600"
+                                : "border-green-500 dark:border-green-400 animate-pulse"
+                            } rounded-full transform -translate-x-1/2`}
+                          ></div>
+        
+                          <div className={`w-10/12 md:w-5/12 ${position === "left" ? "mr-8" : "ml-8"}`}>
+                            <LazySection threshold={0.1}>
+                              <ProductCard
+                                product={product}
+                                isActive={product.id === filteredProducts[activeIndex]?.id}
+                                panelPosition={position}
+                                index={productIndex}
+                                previousProductSold={previousProductSold}
+                                soldOut={soldOut}
+                                locked={locked}
+                                onProductSold={() => markProductAsSold(product.id)}
+                              />
+                            </LazySection>
+                          </div>
+        
+                          <div className="w-2/12 md:w-5/12"></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            );
+          })
+        ) : (
+          // Show message when no products are found
+          <div className="text-center py-8">
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              {selectedDrop && hideOutOfStock 
+                ? 'No hay productos disponibles en este momento.' 
+                : 'Selecciona una colección para ver los productos.'}
+            </p>
           </div>
-        );
-        })}  {/* Properly close the map function and its callback */}
-        {/* Connectors removed as requested */}
+        )}
       </div>
+      
+      {/* Floating back-to-top button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-8 right-8 z-50 bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+        aria-label="Volver al inicio"
+      >
+        <ArrowUpCircle className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+      </button>
     </div>
   )
 }

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react"
+import ImageWithLogoLoading from "./image-with-logo-loading"
+import LogoLoading from "./logo-loading"
 import { config } from "../data/config"
 import { useReducedMotion } from "../hooks/use-reduced-motion"
 import { Product } from "../types/product" // Import the Product type
@@ -98,26 +100,22 @@ export default function ProductDetail({ product }: ProductDetailProps): React.Re
                 className={`h-full w-full relative overflow-hidden ${isImageZoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`}
                 onClick={() => setIsImageZoomed(!isImageZoomed)}
               >
-                <Image
+                <ImageWithLogoLoading
                   src={images[currentImageIndex] || "/placeholder-product.jpg"}
                   alt={`${name} - imagen ${currentImageIndex + 1}`}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority={currentImageIndex === 0}
+                  loaderSize="lg"
                   className={`object-contain transition-transform duration-300 ${
                     isImageZoomed ? "scale-150" : "scale-100"
                   }`}
-                  onLoad={() => setImageLoaded(true)}
+                  onLoadingComplete={() => setImageLoaded(true)}
                 />
               </motion.div>
             </AnimatePresence>
 
-            {/* Loading state */}
-            {!imageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-                <div className="animate-pulse w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700" />
-              </div>
-            )}
+            {/* We no longer need this basic loading state since ImageWithLogoLoading handles it */}
 
             {/* Image navigation buttons */}
             {images.length > 1 && (
@@ -163,11 +161,12 @@ export default function ProductDetail({ product }: ProductDetailProps): React.Re
                       }`}
                       aria-label={`Ver imagen ${index + 1}`}
                     >
-                      <Image 
+                      <ImageWithLogoLoading 
                         src={image} 
                         alt={`${name} - miniatura ${index + 1}`}
                         fill
                         sizes="64px"
+                        loaderSize="sm"
                         className="object-cover"
                       />
                     </button>

@@ -55,6 +55,15 @@ module.exports = {
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "spin-slow": "spin 3s linear infinite",
+        "pulse-scale": "pulseScale 2s ease-in-out infinite",
+      },
+      keyframes: {
+        // Animation that grows and shrinks the element
+        pulseScale: {
+          '0%, 100%': { transform: 'scale(0.95)' },
+          '50%': { transform: 'scale(1.05)' },
+        },
       },
     },
   },
