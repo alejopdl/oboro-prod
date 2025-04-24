@@ -42,8 +42,8 @@ export default function DataFlowDiagram() {
     drawArrow(ctx, 400, 170, 400, 200, "Products with Drop Fields")
     
     // Server Components to Client Components
-    drawArrow(ctx, 350, 250, 250, 280, "DropIds (DROP1, MiniDROP2, etc.)")
-    drawArrow(ctx, 450, 250, 550, 280, "Products with level, blocked, dropId")
+    drawArrow(ctx, 350, 250, 250, 280, "DropID values (DROP1, MiniDROP2, etc.)")
+    drawArrow(ctx, 450, 250, 550, 280, "Products with transformed fields:\nNotion DB → Code\nLevel → level\nBlock → blocked\nDropID → dropId")
     
     // Client interactions
     drawArrow(ctx, 250, 330, 250, 360, "Selected Drop")

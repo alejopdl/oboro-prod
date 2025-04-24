@@ -1,6 +1,8 @@
+import React from "react"
 import Link from "next/link"
-import { config } from "@/data/config"
+import { config } from "../data/config"
 import { Instagram, Facebook, Twitter } from "lucide-react"
+import ClientOnly from "./ClientOnly"
 
 /**
  * Footer component for the site.
@@ -11,8 +13,9 @@ import { Instagram, Facebook, Twitter } from "lucide-react"
  * 
  * @returns JSX Element - The footer component
  */
-export const Footer = (): JSX.Element => {
-  const currentYear = new Date().getFullYear()
+export const Footer = (): React.ReactElement => {
+  // We'll use ClientOnly for this dynamic content
+  // to prevent hydration mismatch
 
   return (
     <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800" aria-labelledby="footer-heading">
@@ -90,7 +93,9 @@ export const Footer = (): JSX.Element => {
 
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800">
           <p className="text-center text-gray-500 dark:text-gray-400 text-sm">
-            &copy; {currentYear} {config.siteName}. Todos los derechos reservados.
+            &copy; <ClientOnly fallback="2025">
+              {new Date().getFullYear()}
+            </ClientOnly> {config.siteName}. Todos los derechos reservados.
           </p>
         </div>
       </div>

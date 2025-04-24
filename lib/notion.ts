@@ -2,6 +2,10 @@
 
 import { Client } from '@notionhq/client';
 import { getProductWithDefaults } from './utils';
+import { createLogger } from './logger';
+
+// Create a context-specific logger for the Notion module
+const log = createLogger('Notion');
 
 // Define types for our product data
 export interface Product {
@@ -37,19 +41,25 @@ const databaseId = process.env.NOTION_DATABASE_ID;
 export async function getAllProducts(): Promise<Product[]> {
   try {
     // Make sure we have our database ID
-    if (!databaseId) throw new Error('Notion database ID not found');
+    if (!databaseId) {
+      log.error('Notion database ID not found');
+      throw new Error('Notion database ID not found');
+    }
 
-    console.log('Fetching from database:', databaseId);
+    log.info(`Fetching products from Notion database: ${databaseId.substring(0, 5)}...`);
 
     // First, verify database access
     try {
+      log.debug('Verifying database access...');
       await notion.databases.retrieve({ database_id: databaseId });
+      log.debug('Database access verified');
     } catch (e: any) {
-      console.error('Database access error:', e);
+      log.error('Database access error:', e);
       throw new Error(`Cannot access database. Make sure the integration has access: ${e?.message || 'Unknown error'}`);
     }
 
     // Query the database - get up to 100 products to make sure we see the variety
+    log.debug('Querying Notion database with sorts by DropID and Level...');
     const response = await notion.databases.query({
       database_id: databaseId,
       page_size: 100, // Get more products to ensure variety
@@ -66,12 +76,19 @@ export async function getAllProducts(): Promise<Product[]> {
       ],
     });
 
-    console.log('Found', response.results.length, 'products');
+    log.info(`Found ${response.results.length} products in Notion database`);
 
     // Transform Notion data into our Product type
+    log.debug('Transforming Notion data into Product objects...');
     const products = response.results.map((page: any) => {
-      // Log the raw page data for debugging
-      console.log('Raw page data:', JSON.stringify(page.properties, null, 2));
+      // Log only the first product's raw data to avoid overwhelming logs
+      if (page.id === response.results[0]?.id) {
+        log.debug('Sample page properties:', {
+          id: page.id,
+          name: page.properties.Name?.title[0]?.plain_text || '(unnamed)',
+          properties: Object.keys(page.properties)
+        });
+      }
       
       try {
         // Extract data from Notion properties
@@ -99,16 +116,20 @@ export async function getAllProducts(): Promise<Product[]> {
         // Use our utility function to ensure all fields have proper defaults
         const product = getProductWithDefaults(rawProduct);
         
-        // Extra debug to verify drop system fields
-        console.log(`Mapped product ${product.name}:`, {
-          level: product.level,
-          blocked: product.blocked,
-          dropId: product.dropId
-        });
+        // Log drop system fields to help debug the drop system
+        if (page.id === response.results[0]?.id) {
+          log.debug('Sample product drop fields:', {
+            name: product.name,
+            level: product.level,
+            blocked: product.blocked,
+            dropId: product.dropId,
+            inStock: product.inStock
+          });
+        }
         
         return product;
       } catch (error) {
-        console.error(`Error mapping product ${page.id}:`, error);
+        log.error(`Error mapping product ${page.id}:`, error);
         // Return a default product with error info
         return getProductWithDefaults({
           id: page.id,
@@ -117,9 +138,10 @@ export async function getAllProducts(): Promise<Product[]> {
       }
     });
 
+    log.info(`Successfully processed ${products.length} products from Notion`);
     return products;
   } catch (error) {
-    console.error('Error fetching products:', error);
+    log.error('Error fetching products:', error);
     throw error;
   }
 }
@@ -131,11 +153,17 @@ export async function getAllProducts(): Promise<Product[]> {
  */
 export async function getProductById(id: string): Promise<Product | null> {
   try {
+    log.info(`Fetching product with ID: ${id.substring(0, 8)}...`);
+    
+    log.debug('Retrieving page from Notion...');
     const response = await notion.pages.retrieve({ page_id: id });
+    log.debug('Page retrieved successfully');
     
     // Now using real data from Notion instead of mock data
     // Transform the page data into our Product type
-    return {
+    log.debug('Processing product properties');
+    
+    const product = {
       id: response.id,
       name: (response as any).properties.Name.title[0]?.plain_text || '',
       price: (response as any).properties.Price.number || 0,
@@ -153,8 +181,21 @@ export async function getProductById(id: string): Promise<Product | null> {
       createdTime: (response as any).created_time || '',
       lastEditedTime: (response as any).last_edited_time || '',
     };
+    
+    // Log the drop system fields to help debug the drop system
+    log.debug('Product drop fields:', {
+      name: product.name,
+      level: product.level,
+      blocked: product.blocked,
+      dropId: product.dropId,
+      inStock: product.inStock
+    });
+    
+    log.info(`Successfully processed product: ${product.name}`);
+    return product;
+    
   } catch (error) {
-    console.error('Error fetching product:', error);
+    log.error(`Error fetching product ${id}:`, error);
     return null;
   }
 }

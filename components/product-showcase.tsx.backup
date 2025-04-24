@@ -5,17 +5,21 @@ import { motion } from "framer-motion"
 import ProductCard from "./ProductCard"
 import LazySection from "./lazy-section"
 import Connector from "./connector"
-import type { Product } from "../types/product"
+import type { Product } from "@/types/product"
 import { ArrowUpCircle, Lock } from "lucide-react"
-import { useScroll } from "../contexts/scroll-context"
-import { useReducedMotion } from "../hooks/use-reduced-motion"
-import { preloadImages } from "../services/image-service"
+import { useScroll } from "@/contexts/scroll-context"
+import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { preloadImages } from "@/services/image-service"
 import { Checkbox } from "./ui/checkbox"
 import { useTheme } from "next-themes"
-import { createLogger } from "../lib/logger"
+import { createLogger } from "@/lib/logger"  // Import our new logger
 
-// Create a context-specific logger for this component
-const log = createLogger('ProductShowcase')
+// Initialize a logger for this component
+const logger = createLogger('ProductShowcase')
+import { createLogger } from "@/lib/logger"  // Import our new logger
+
+// Initialize a logger for this component
+const logger = createLogger('ProductShowcase')
 
 /**
  * Product showcase component that displays products in a visually appealing layout
@@ -27,6 +31,35 @@ const log = createLogger('ProductShowcase')
  * @returns JSX Element - The product showcase component
  */
 export default function ProductShowcase({ products, availableDrops }: { products: Product[], availableDrops: string[] }) {
+  // Log the initial data received by the component
+  useEffect(() => {
+    logger.info(`ProductShowcase initialized with ${products.length} products and ${availableDrops.length} available drops`);
+    logger.debug('Available drops:', availableDrops);
+    
+    // Log product distribution by drop - useful for debugging the drop system
+    const productsByDrop = products.reduce((acc: Record<string, number>, product) => {
+      const dropId = product.dropId || 'unknown';
+      acc[dropId] = (acc[dropId] || 0) + 1;
+      return acc;
+    }, {});
+    
+    logger.debug('Products by drop:', productsByDrop);
+  }, [products, availableDrops]);
+  // Log the initial data received by the component
+  useEffect(() => {
+    logger.info(`ProductShowcase initialized with ${products.length} products and ${availableDrops.length} available drops`);
+    logger.debug('Available drops:', availableDrops);
+    
+    // Log product distribution by drop - useful for debugging the drop system
+    const productsByDrop = products.reduce((acc: Record<string, number>, product) => {
+      const dropId = product.dropId || 'unknown';
+      acc[dropId] = (acc[dropId] || 0) + 1;
+      return acc;
+    }, {});
+    
+    logger.debug('Products by drop:', productsByDrop);
+  }, [products, availableDrops]);
+  
   // State for hiding out-of-stock products
   const [hideOutOfStock, setHideOutOfStock] = useState(false)
   
@@ -53,6 +86,37 @@ export default function ProductShowcase({ products, availableDrops }: { products
   // Add state for selected drop
   const [selectedDrop, setSelectedDrop] = useState<string>('')
   
+  // Log when drop selection changes
+  useEffect(() => {
+    if (selectedDrop) {
+      logger.info(`Drop selected: ${selectedDrop}`);
+      // Filter products by the selected drop
+      const filteredProducts = useMemo(() => {
+        logger.debug('Filtering products with current drop selection:', selectedDrop);
+        
+        if (!selectedDrop) {
+          logger.debug('No drop selected, returning empty array');
+          return [];
+        }
+        
+        const filtered = products.filter(product => product.dropId === selectedDrop);
+        logger.debug(`Filter results: ${filtered.length} products match drop ID ${selectedDrop}`);
+        
+        // Log level distribution
+        const levelCounts = filtered.reduce((acc: Record<number, number>, product) => {
+          const level = product.level || 0;
+          acc[level] = (acc[level] || 0) + 1;
+          return acc;
+        }, {});
+        logger.debug('Products by level in selected drop:', levelCounts);
+        
+        return filtered;
+      }, [products, selectedDrop]);
+    } else {
+      logger.info('No drop selected - showing all products');
+    }
+  }, [selectedDrop, products])
+
   // Set mounted state after component mounts and initialize selected drop
   useEffect(() => {
     setMounted(true)
@@ -62,7 +126,7 @@ export default function ProductShowcase({ products, availableDrops }: { products
       setSelectedDrop(availableDrops[0])
     }
   }, [availableDrops, selectedDrop])
-  
+
   // Reset 'hideOutOfStock' when theme changes
   useEffect(() => {
     // Reset to default (unchecked) when theme changes
@@ -77,9 +141,10 @@ export default function ProductShowcase({ products, availableDrops }: { products
         ...products[0].images, 
         ...(products.length > 1 ? products[1].images : [])
       ]
+      logger.debug(`Preloading ${imagesToPreload.length} images for first products`);
       preloadImages(imagesToPreload)
     }
-  }, [products])
+  }, [products]);
 
   // Initialize sold products state based on the product data
   useEffect(() => {
@@ -92,66 +157,182 @@ export default function ProductShowcase({ products, availableDrops }: { products
     setSoldProducts(initialSoldState)
   }, [products])
   
-  // Note: productsByLevel and levels are now created using filteredProducts above
-
   // Function to mark a product as sold
   const markProductAsSold = (productId: string) => {
-    log.info(`Marking product as sold: ${productId}`);
+    logger.info(`Product ${productId} marked as sold`);
+    
+    // Find the product to log relevant details
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      logger.debug(`Sold status change for: ${product.name} (Level ${product.level}, Drop ${product.dropId})`);
+    }
+    
     setSoldProducts((prev) => {
-      const newState = {
+      const updatedSoldProducts = {
         ...prev,
         [productId]: true,
       };
-      log.debug(`Updated sold products state`, newState);
-      return newState;
+      
+      // Check if this affects any locked products
+      const potentiallyAffectedProducts = products.filter(p => 
+        p.blocked && p.dropId === product?.dropId && p.level > (product?.level || 0)
+      );
+      
+      if (potentiallyAffectedProducts.length > 0) {
+        logger.debug(`This change may affect ${potentiallyAffectedProducts.length} higher-level products`);
+      }
+      
+      return updatedSoldProducts;
     })
   }
 
-  // We'll move this useEffect after filteredProducts is defined
-
   // Helper function to determine if a product is unlocked
   function isProductUnlocked(product: Product): boolean {
-    // If product is in level 1, it's always unlocked
+    // Level 1 products are always unlocked
     if (product.level === 1) {
-      log.debug(`Product ${product.id} (${product.name}) is level 1 - automatically unlocked`);
+      logger.debug(`Product ${product.id} (${product.name}) is level 1, automatically unlocked`);
       return true;
     }
     
-    // Get all products in the previous level in the same drop
+    // Find products from the previous level in the same drop
     const prevLevelProducts = products.filter(
       p => p.dropId === product.dropId && p.level === product.level - 1
     );
     
-    log.debug(`Product ${product.name} (level ${product.level}) has ${prevLevelProducts.length} products in previous level`, {
-      productId: product.id,
-      level: product.level,
-      dropId: product.dropId,
-      prevLevelCount: prevLevelProducts.length,
-      prevLevelProducts: prevLevelProducts.map(p => ({ id: p.id, name: p.name, inStock: p.inStock }))
-    });
-    
-    // If no products in previous level, this product is unlocked
+    // If no previous level products exist, this product is unlocked
     if (prevLevelProducts.length === 0) {
-      log.debug(`No products in previous level - ${product.name} unlocked`);
+      logger.debug(`Product ${product.id} (${product.name}) has no previous level products, automatically unlocked`);
       return true;
     }
     
-    // Check if all products in previous level are sold out
-    const allPrevLevelSoldOut = prevLevelProducts.every(p => !p.inStock || soldProducts[p.id]);
+    // Check if all previous level products are sold out
+    const allPrevSoldOut = prevLevelProducts.every(p => !p.inStock || soldProducts[p.id]);
     
-    log.debug(`Product ${product.name} ${allPrevLevelSoldOut ? 'is unlocked' : 'is still locked'} - all previous level products sold: ${allPrevLevelSoldOut}`);
+    logger.debug(
+      `Product ${product.id} (${product.name}) level ${product.level} ` + 
+      `unlock check: ${allPrevSoldOut ? 'UNLOCKED' : 'LOCKED'} - ` +
+      `${prevLevelProducts.length} previous level products, ` +
+      `${prevLevelProducts.filter(p => !p.inStock || soldProducts[p.id]).length} sold out`
+    );
     
-    return allPrevLevelSoldOut;
-  }
-  
-  // Additional helper to check if a product is locked (opposite of unlocked)
-  function isProductLocked(product: Product): boolean {
-    return !isProductUnlocked(product);
+    return allPrevSoldOut;
   }
 
-  // Introduction card with animation (only applied after mounting)
-  const IntroductionCard = useMemo(() => {
-    return (
+  // Additional helper to check if a product is locked (opposite of unlocked)
+  function isProductLocked(product: Product): boolean {
+    // If product isn't marked as blocked in Notion, it's always unlocked
+    if (!product.blocked) {
+      return false;
+    }
+    
+    // Otherwise check if it should be unlocked based on drop system rules
+    const locked = !isProductUnlocked(product);
+    
+    if (locked) {
+      logger.debug(`Product ${product.id} (${product.name}) is LOCKED - Level ${product.level}, Drop ${product.dropId}`);
+    }
+    
+    return locked;
+  }
+
+  // Filter products based on selected drop
+  const filteredProducts = useMemo(() => {
+    logger.debug('Filtering products with hideOutOfStock:', hideOutOfStock);
+    let filtered = [...products];
+    
+    // Filter by selected drop
+    if (selectedDrop) {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(product => product.dropId === selectedDrop);
+      logger.debug(`Filtered by drop ${selectedDrop}: ${beforeCount} -> ${filtered.length} products`);
+    }
+    
+    // Filter out-of-stock products if the checkbox is checked
+    if (hideOutOfStock) {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(product => product.inStock && !soldProducts[product.id]);
+      logger.debug(`Filtered out-of-stock: ${beforeCount} -> ${filtered.length} products`);
+    }
+    
+    // Sort by level
+    filtered.sort((a, b) => (a.level || 0) - (b.level || 0));
+    logger.debug(`Final product count after filtering: ${filtered.length}`);
+    
+    // Log level distribution
+    const levelCounts = filtered.reduce((acc: Record<number, number>, product) => {
+      const level = product.level || 0;
+      acc[level] = (acc[level] || 0) + 1;
+      return acc;
+    }, {});
+    logger.debug('Products by level after filtering:', levelCounts);
+    
+    return filtered;
+  }, [products, selectedDrop, hideOutOfStock, soldProducts]);
+
+  // Group filtered products by level
+  const productsByLevel = filteredProducts.reduce((acc, product) => {
+    const level = product.level
+    if (!acc[level]) acc[level] = []
+    acc[level].push(product)
+    return acc
+  }, {} as Record<number, Product[]>)
+  
+  // Get levels sorted in ascending order
+  const levels = Object.keys(productsByLevel)
+    .map(Number)
+    .sort((a, b) => a - b)
+    
+  // Update active product based on scroll position - moved after filteredProducts is defined
+  // Use a ref to store the current filtered products to avoid dependency issues
+  const filteredProductsRef = useRef(filteredProducts);
+  
+  // Update the ref when filteredProducts changes
+  useEffect(() => {
+    filteredProductsRef.current = filteredProducts;
+  }, [filteredProducts]);
+  
+  // Handle scroll without dependency on filteredProducts directly
+  useEffect(() => {
+    const handleScroll = () => {
+      // Only run if we have product refs
+      if (Object.keys(productRefs.current).length === 0) return;
+      
+      // Throttle scroll events for better performance
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => {
+          // Find any product that's in view
+          Object.entries(productRefs.current).forEach(([id, ref]) => {
+            if (!ref) return;
+            
+            const rect = ref.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            
+            // Check if product is in view
+            if (rect.top < viewportHeight && rect.bottom > 0) {
+              // Extract product id from the ref key (format: "level-productId")
+              const parts = id.split('-');
+              if (parts.length >= 2) {
+                const productId = parts.slice(1).join('-'); // In case product ID contains hyphens
+                // Use the ref version of filteredProducts
+                const currentProducts = filteredProductsRef.current;
+                const productIndex = currentProducts.findIndex(p => p.id === productId);
+                if (productIndex !== -1) {
+                  setActiveIndex(productIndex);
+                }
+              }
+            }
+          });
+        });
+      }
+    };
+    
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []); // Empty dependency array to avoid re-registering on every render
+
+  return (
+    <div className="relative w-full max-w-6xl mx-auto px-4 py-16 md:py-24">
+      {/* Introduction Card */}
       <div className="mb-16 md:mb-24 relative z-10">
         {/* Static version shown during SSR and before client-side hydration */}
         {!mounted ? (
@@ -251,45 +432,6 @@ export default function ProductShowcase({ products, availableDrops }: { products
           </motion.div>
         )}
       </div>
-    )
-  }, [mounted, prefersReducedMotion])
-
-  // Effect to preload images when selected drop changes
-  useEffect(() => {
-    if (!selectedDrop) return;
-    
-    log.info(`Selected drop changed to: ${selectedDrop}`);
-    
-    // Filter products for this drop
-    const dropProducts = products.filter(p => p.dropId === selectedDrop);
-    log.debug(`Found ${dropProducts.length} products in drop ${selectedDrop}`);
-    
-    // Get image URLs to preload
-    const imageUrls = dropProducts.flatMap(p => p.images);
-    log.debug(`Preloading ${imageUrls.length} images for drop ${selectedDrop}`);
-    
-    // Preload the images
-    preloadImages(imageUrls);
-  }, [selectedDrop, products]);
-
-  // Filter products by the selected drop
-  const filteredProducts = selectedDrop ? 
-    products.filter(product => product.dropId === selectedDrop) : 
-    [];
-
-  // Group filtered products by level
-  const productsByLevel = filteredProducts.reduce((acc, product) => {
-    const level = product.level
-    if (!acc[level]) acc[level] = []
-    acc[level].push(product)
-    return acc
-  }, {} as Record<number, Product[]>)
-  
-  // Get levels sorted in ascending order
-  const levels = Object.keys(productsByLevel)
-    .map(Number)
-    .sort((a, b) => a - b)
-    
   // Update active product based on scroll position - moved after filteredProducts is defined
   // Use a ref to store the current filtered products to avoid dependency issues
   const filteredProductsRef = useRef(filteredProducts);

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/router"
-import { config } from "@/data/config"
+import { config } from "../data/config"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, Search, X, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
@@ -17,7 +17,7 @@ import { useTheme } from "next-themes"
  * 
  * @returns JSX Element - The navigation bar component
  */
-export const Navbar = (): JSX.Element => {
+export const Navbar = (): React.ReactElement => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [isScrolled, setIsScrolled] = useState<boolean>(false)

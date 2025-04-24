@@ -4,16 +4,22 @@ import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import ProductGrid from '../ProductGrid'
 import { mockProducts } from '../../tests/utils'
+import type { Product } from '../../types/product'
 
 // Mock ProductCard component to simplify testing
 jest.mock('../ProductCard', () => {
   return {
     __esModule: true,
-    default: ({ product }) => (
-      <div data-testid="product-card">
+    default: ({ product }: { product: Product }) => (
+      <div 
+        data-testid="product-card"
+        className={product.blocked ? 'product-card-locked' : ''}
+      >
         <h3>{product.name}</h3>
         <p>{product.price}</p>
         <p>{product.size}</p>
+        {!product.inStock && <span>Agotado</span>}
+        {product.blocked && <span>Bloqueado</span>}
       </div>
     ),
   }

@@ -14,16 +14,16 @@ La base de datos de productos en Notion contiene las siguientes propiedades:
 
 | Propiedad | Tipo | Descripción |
 |-----------|------|-------------|
-| Name (Nombre) | Title | Nombre del producto (requerido) |
-| Price (Precio) | Number | Precio del producto en ARS |
-| Description (Descripción) | Text | Descripción detallada del producto |
-| Images (Imágenes) | Files & Media | Imágenes del producto (múltiples permitidas) |
-| Category (Categoría) | Select | Categoría del producto |
-| InStock (En Stock) | Checkbox | Marcar si el producto está disponible |
-| Size (Talle) | Select | Talle del producto (S, M, L, XL, etc.) |
-| Level (Nivel) | Number | Nivel del producto dentro de un drop (1, 2, 3, etc.) |
-| Blocked (Bloqueado) | Checkbox | Marcar si el producto debe bloquearse hasta que se agoten los de nivel inferior |
-| DropId (ID de Drop) | Select | Colección a la que pertenece el producto (ej. "DROP1", "MiniDROP2") |
+| Name | Title | Nombre del producto (requerido) |
+| Price | Number | Precio del producto en ARS |
+| Description | Text | Descripción detallada del producto |
+| Images | Files & Media | Imágenes del producto (múltiples permitidas) |
+| Category | Select | Categoría del producto |
+| InStock | Checkbox | Marcar si el producto está disponible |
+| Size | Select | Talle del producto (S, M, L, XL, etc.) |
+| Level | Number | Nivel del producto dentro de un drop (1, 2, 3, etc.) |
+| Block | Checkbox | Marcar si el producto debe bloquearse hasta que se agoten los de nivel inferior |
+| DropID | Select | Colección a la que pertenece el producto (ej. "DROP1", "MiniDROP2") |
 
 ## Cómo Agregar un Nuevo Producto
 
@@ -38,8 +38,8 @@ La base de datos de productos en Notion contiene las siguientes propiedades:
    - **InStock**: Marca si el producto está disponible
    - **Size**: Selecciona el talle disponible
    - **Level**: Asigna un nivel al producto (1, 2, 3, etc.)
-   - **Blocked**: Marca si el producto debe estar bloqueado inicialmente
-   - **DropId**: Selecciona a qué colección o "drop" pertenece el producto
+   - **Block**: Marca si el producto debe estar bloqueado inicialmente
+   - **DropID**: Selecciona a qué colección o "drop" pertenece el producto
 
 ## Cómo Editar un Producto Existente
 
@@ -53,7 +53,7 @@ La base de datos de productos en Notion contiene las siguientes propiedades:
 
 1. Abre el producto en Notion
 2. Desmarca la casilla "InStock"
-3. El producto aparecerá como "Agotado" en el sitio web
+3. El producto aparecerá con un icono de cara triste y diseño atenuado en el sitio web
 
 ## Prácticas Recomendadas
 
@@ -87,7 +87,7 @@ Si encuentras algún problema con la integración de Notion:
 El sistema de drops permite organizar productos en colecciones y desbloquearlos por niveles:
 
 1. **Crear un nuevo Drop**:
-   - Agrega una nueva opción en la propiedad Select "DropId"
+   - Agrega una nueva opción en la propiedad Select "DropID" (exactamente con esa capitalización)
    - Usa nombres descriptivos y consistentes (ej. "DROP1", "MiniDROP2")
 
 2. **Configurar niveles**:
@@ -95,7 +95,7 @@ El sistema de drops permite organizar productos en colecciones y desbloquearlos 
    - **Nivel 2+**: Productos que solo se desbloquean cuando se agotan los de nivel inferior
 
 3. **Configurar bloqueo**:
-   - Marca la casilla "Blocked" para productos de nivel 2 o superior
+   - Marca la casilla "Block" (no "Blocked") para productos de nivel 2 o superior
    - Los productos de nivel 1 nunca deben estar bloqueados
 
 4. **Prueba la configuración**:

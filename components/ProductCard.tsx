@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react'
 import { default as Image } from 'next/image'
 import { default as Link } from 'next/link'
 import { motion } from 'framer-motion'
-import { config } from '@/data/config'
-import { useReducedMotion } from '@/hooks/use-reduced-motion'
+import { config } from '../data/config'
+import { useReducedMotion } from '../hooks/use-reduced-motion'
 import { Product } from '../types/product'
-import { Lock, Unlock, ArrowUpCircle } from 'lucide-react' // Import icons
+import { Lock } from 'lucide-react' // Only import the icons we actually use
 
 interface ProductCardProps {
   product: Product
@@ -76,8 +76,6 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
           {soldOut && (
             <div className="absolute inset-0 bg-black bg-opacity-50"></div>
           )}
-          {/* Level indicator badge removed for minimalist style */}
-          
           {/* Locked indicator with minimalist style */}
           {locked && !soldOut && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
@@ -90,23 +88,17 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
             </div>
           )}
           
-          {/* Unlocked indicator with more prominent effect */}
-          {!locked && !soldOut && (
-            <>
-              {/* Unlock icon removed for cleaner design */}
-              {/* Move the glow and effects to be siblings of the image container, not overlapping it */}
-            </>
-          )}
+
         </div>
         
-        {/* Glow effects for available products - positioned outside the image container */}
+        {/* Glow effects for available products */}
         {!locked && !soldOut && (
           <>
             <div className="absolute inset-x-0 bottom-0 h-6 bg-white/10 dark:bg-black/10 backdrop-blur-[1px] pointer-events-none rounded-b-lg opacity-70"></div>
             <div className="absolute inset-x-0 -top-1 h-2 bg-gradient-to-r from-white/60 via-white/80 to-white/60 dark:from-black/40 dark:via-black/60 dark:to-black/40 pointer-events-none rounded-t-lg blur-sm"></div>
             <div className="absolute inset-y-0 -left-1 w-2 bg-gradient-to-b from-white/60 via-white/80 to-white/60 dark:from-black/40 dark:via-black/60 dark:to-black/40 pointer-events-none rounded-l-lg blur-sm"></div>
             <div className="absolute inset-y-0 -right-1 w-2 bg-gradient-to-b from-white/60 via-white/80 to-white/60 dark:from-black/40 dark:via-black/60 dark:to-black/40 pointer-events-none rounded-r-lg blur-sm"></div>
-            {/* Add animated pulse effect to the card border */}
+            {/* Animated pulse effect for the card border */}
             <div className="absolute inset-0 border-2 border-black/70 dark:border-white/70 animate-pulse rounded-lg pointer-events-none z-[-1]"></div>
             </>
           )}
@@ -147,7 +139,7 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
               )}
             </span>
             
-            {/* Removed duplicate lock status for minimalist style */}
+
           </div>
         </div>
       </Link>

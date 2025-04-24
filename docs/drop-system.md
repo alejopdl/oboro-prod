@@ -30,12 +30,16 @@ The drop system is a product release strategy that:
 
 - **Available**: Products that are in stock and available for purchase
   - Displayed with an inverted color scheme (dark in light mode, white in dark mode)
-  - Feature a subtle glow effect with accent color borders
+  - Feature a subtle glow effect with black borders in light mode, white borders in dark mode
   - Include an unlock icon in the top-right corner
+  - Display a smiley face icon in the availability badge
 - **Sold Out**: Products that are no longer available (sold out)
-  - Displayed with reduced opacity and a "Sold Out" badge
+  - Displayed with reduced opacity
+  - Show a sad face icon instead of traditional "Sold Out" text
+  - Display a frown face in the availability badge
 - **Locked**: Products that are not yet available for purchase (higher-level products)
-  - Displayed with a lock icon overlay
+  - Displayed with a large red lock icon overlay
+  - Price is hidden and replaced with "$ ¯\\_(ツ)_/¯"
   - Can't be clicked or accessed until unlocked
 
 ## How It Works
@@ -92,7 +96,7 @@ The `isProductUnlocked()` function checks if a product should be available based
 
 To add a new drop to the system:
 
-1. Add a new option to the "DropId" Select property in your Notion database
+1. Add a new option to the "DropID" Select property in your Notion database
 2. Assign products to the new drop by selecting the new drop ID
 3. Set appropriate level numbers for products within the drop
 4. Mark higher-level products as blocked (if they should follow the level-unlocking rules)
@@ -107,18 +111,39 @@ The drop system includes comprehensive tests:
 
 ## Current Styling Features
 
+### Product Cards
+
 1. **Inverted Color Scheme**: Product cards use an inverted color scheme to create visual interest
-   - Light Mode: Dark cards with white text and accents
-   - Dark Mode: White cards with dark text and accents
+   - Light Mode: Dark cards with black borders and white text
+   - Dark Mode: White cards with white borders and dark text
 
 2. **Glow Effects**: Available products feature subtle glow effects
    - Edge highlights around the border
    - Subtle pulse animation to draw attention
    - All effects avoid affecting product image clarity
 
-3. **Status Badges**: Clear visual indicators for product status
-   - Available products feature a green badge that matches the card color scheme
-   - Sold-out products display a prominent red badge
+3. **Status Indicators**: Emoticon-based visual indicators for product status
+   - Available products display a smiley face in the availability badge
+   - Sold-out products show a sad face icon instead of "Sold Out" text
+   - Locked products feature a large red lock icon
+   - Locked products hide the price and display "$ ¯\_(ツ)_/¯" instead
+
+### Header Component
+
+1. **Solid Background**: Header now uses a solid background color instead of translucent
+   - Improves readability and contrast for navigation elements
+   - Maintains consistent appearance across pages
+
+2. **Help Button**: Redesigned help button to match theme toggle style
+   - Uses a simple "?" character instead of circle-question icon
+   - Consistent with the minimalist design language
+
+### Product Showcase
+
+1. **Drop Selection**: Enhanced drop selector interface
+   - Larger and more prominent drop selection buttons
+   - Increased spacing between UI elements for better usability
+   - Better visual hierarchy to guide users through the selection process
 
 ## Future Enhancements
 

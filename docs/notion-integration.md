@@ -23,21 +23,26 @@ La integración con Notion sigue estos principios:
 La interfaz `Product` define la estructura de los productos:
 
 ```typescript
+// La interfaz Product refleja exactamente la estructura de nuestra base de datos en Notion
 export interface Product {
-  id: string
-  name: string
-  price: number
-  size?: string
-  images: string[]
-  soldOut: boolean
-  locked?: boolean
-  description: string
-  category: string
-  inStock?: boolean
-  // Campos del sistema de drops
-  level: number       // Nivel del producto dentro del drop
-  blocked: boolean    // Si está bloqueado hasta que se agoten los de nivel inferior
-  dropId: string      // Identificador del drop al que pertenece el producto
+  // Campos básicos del producto
+  id: string           // ID único del producto (generado por Notion)
+  name: string         // Nombre del producto (columna Name en Notion)
+  price: number        // Precio en pesos (columna Price en Notion)
+  description: string  // Descripción detallada (columna Description en Notion)
+  images: string[]     // URLs de las imágenes (columna Images en Notion)
+  category: string     // Categoría del producto (columna Category en Notion)
+  inStock: boolean     // Si está disponible (columna InStock en Notion, EXACTAMENTE con esta capitalización)
+  size?: string        // Talle opcional (columna Size en Notion)
+  
+  // Campos del sistema de drops - NOMBRES EXACTOS como en la base de datos
+  level: number       // Nivel del producto (columna Level en Notion)
+  blocked: boolean    // Si está bloqueado (columna Block en Notion - ¡no "Blocked"!)
+  dropId: string      // Identificador del drop (columna DropID en Notion - ¡notar la "ID" en mayúsculas!)
+  
+  // Metadatos adicionales
+  createdTime?: string  // Fecha de creación
+  lastEditedTime?: string // Fecha de última edición
 }
 ```
 
@@ -65,8 +70,10 @@ export interface Product {
 ## Flujo de Datos
 
 1. **Obtención de Datos**: 
-   - La página principal es un componente de servidor que llama a una API de productos mock
-   - Los datos incluyen campos del sistema de drops (level, blocked, dropId)
+   - La página principal es un componente de servidor que llama a la API de Notion a través de `lib/notion.ts`
+   - El endpoint `/api/test-notion.ts` permite verificar la conexión a la base de datos de Notion
+   - La función `getAllProducts()` obtiene todos los productos con sus propiedades
+   - Los datos incluyen campos básicos y campos especiales del sistema de drops (level, blocked, dropId)
 
 2. **Renderizado**:
    - Los datos se procesan y convierten al formato correcto
