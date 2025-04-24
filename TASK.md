@@ -49,6 +49,29 @@
 - [x] Connect Notion database to the application (Added 2025-04-23)
   - [x] Update homepage to fetch real products from Notion
   - [x] Add error handling for API requests
+
+### Sprint 4: UI Improvements and Refinement (Added 2025-04-23)
+
+- [x] Enhanced Product Card UI
+  - [x] Increase product card size for better visibility
+  - [x] Replace "Agotado" text with sad face icon on sold-out products
+  - [x] Make locked icon bigger and dark red
+  - [x] Hide prices for locked items, replace with "$ ¯\\_(ツ)_/¯"
+  - [x] Fix card border colors (black in light mode, white in dark mode)
+  - [x] Fix positioning and spacing issues
+- [x] Improved Drop Selector Experience
+  - [x] Make drop selection buttons larger and more prominent
+  - [x] Add translucent background to the drop selector
+  - [x] Add "Ocultar agotados" checkbox to filter out-of-stock products
+  - [x] Fix empty level headings when all products are filtered out
+- [x] Header Component Improvements
+  - [x] Change header background from translucent to solid color
+  - [x] Make help button match theme toggle button style
+  - [x] Replace HelpCircle icon with simple "?" character
+- [x] Fix React Hydration Issues
+  - [x] Add suppressHydrationWarning where needed
+  - [x] Refactor conditional rendering in theme-dependent UI elements
+  - [x] Fix hydration mismatch in the help button component
   - [x] Create unit tests for Notion integration
   - [x] Create tests for homepage with Notion data
 - [ ] Create Homepage with featured products

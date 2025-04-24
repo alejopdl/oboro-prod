@@ -6,11 +6,12 @@ import ProductCard from "./ProductCard"
 import LazySection from "./lazy-section"
 import Connector from "./connector"
 import type { Product } from "@/types/product"
-import { ArrowUpCircle } from "lucide-react" // Import for level heading
+import { ArrowUpCircle, Lock } from "lucide-react"
 import { useScroll } from "@/contexts/scroll-context"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
-import { Lock } from "lucide-react"
 import { preloadImages } from "@/services/image-service"
+import { Checkbox } from "./ui/checkbox"
+import { useTheme } from "next-themes"
 
 /**
  * Product showcase component that displays products in a visually appealing layout
@@ -22,6 +23,11 @@ import { preloadImages } from "@/services/image-service"
  * @returns JSX Element - The product showcase component
  */
 export default function ProductShowcase({ products, availableDrops }: { products: Product[], availableDrops: string[] }) {
+  // State for hiding out-of-stock products
+  const [hideOutOfStock, setHideOutOfStock] = useState(false)
+  
+  // Get current theme to listen for changes
+  const { theme } = useTheme()
   // Track which product is currently active based on scroll position
   const [activeIndex, setActiveIndex] = useState(0)
   
@@ -52,6 +58,12 @@ export default function ProductShowcase({ products, availableDrops }: { products
       setSelectedDrop(availableDrops[0])
     }
   }, [availableDrops, selectedDrop])
+  
+  // Reset 'hideOutOfStock' when theme changes
+  useEffect(() => {
+    // Reset to default (unchecked) when theme changes
+    setHideOutOfStock(false);
+  }, [theme])
 
   // Preload first product images
   useEffect(() => {
@@ -289,14 +301,14 @@ export default function ProductShowcase({ products, availableDrops }: { products
       {/* Products by Level */}
       <div className="space-y-24 mt-16 relative">
         {/* Drop Selector - Positioned above the first level */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="flex flex-wrap gap-2 justify-center">
+        <div className="flex flex-col items-center mb-12 w-full py-6 bg-white/20 dark:bg-black/20 backdrop-blur-sm rounded-lg">
+          <div className="flex flex-wrap gap-3 justify-center">
             {availableDrops.map(drop => (
               <button 
                 key={drop}
                 onClick={() => setSelectedDrop(drop)}
                 aria-pressed={selectedDrop === drop}
-                className={`px-4 py-2 rounded-md transition-colors duration-300 ${
+                className={`px-5 py-3 text-lg font-medium rounded-md transition-colors duration-300 ${
                   selectedDrop === drop 
                     ? 'bg-black text-white dark:bg-white dark:text-black' 
                     : 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700'
@@ -306,8 +318,36 @@ export default function ProductShowcase({ products, availableDrops }: { products
               </button>
             ))}
           </div>
+          
+          <div className="flex items-center space-x-3 mt-6">
+            <Checkbox 
+              id="hide-out-of-stock" 
+              checked={hideOutOfStock}
+              onCheckedChange={(checked: boolean | 'indeterminate') => {
+                setHideOutOfStock(checked === true)
+              }}
+              className="border-black dark:border-white h-5 w-5"
+            />
+            <label 
+              htmlFor="hide-out-of-stock"
+              className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              Ocultar agotados
+            </label>
+          </div>
         </div>
-        {levels.map(level => (
+        {levels.map(level => {
+          // Check if this level has any visible products (not sold out or not filtered)
+          const hasVisibleProducts = productsByLevel[level] && productsByLevel[level].some(product => {
+            const isSoldOut = !product.inStock || soldProducts[product.id];
+            // If hideOutOfStock is true and product is sold out, it's not visible
+            return !(hideOutOfStock && isSoldOut);
+          });
+          
+          // Skip rendering this entire level section if there are no visible products
+          if (!hasVisibleProducts) return null;
+          
+          return (
           <div key={level} className="mb-16 flex flex-col items-center">
             <h3 className="text-xl font-semibold mb-4 bg-black/80 dark:bg-white/80 text-white dark:text-black px-3 py-2 rounded-md inline-flex items-center gap-1">
               <ArrowUpCircle className="h-4 w-4" />
@@ -319,17 +359,18 @@ export default function ProductShowcase({ products, availableDrops }: { products
               {/* Level indicator - visual line through the center */}
               <div className="absolute left-1/2 h-full -translate-x-1/2 w-1 bg-gradient-to-b from-black/0 via-black/10 to-black/0 dark:from-white/0 dark:via-white/10 dark:to-white/0 -z-10"></div>
               
-              {/* Flexible-width grid with auto-fit to center items */}
-              <div className={`grid gap-6 w-full max-w-6xl mx-auto
-                grid-cols-1 
-                ${productsByLevel[level]?.length === 1 ? 'md:grid-cols-1 lg:grid-cols-1 md:max-w-md' : ''}
-                ${productsByLevel[level]?.length === 2 ? 'md:grid-cols-2 lg:grid-cols-2 md:max-w-3xl' : ''}
-                ${productsByLevel[level]?.length >= 3 ? 'md:grid-cols-2 lg:grid-cols-3' : ''}
-              `}>
+              {/* Horizontal flex container for single row layout */}
+              <div className="flex flex-wrap md:flex-nowrap justify-center gap-10 w-full max-w-[90rem] mx-auto overflow-x-auto pb-8 hide-scrollbar">
+                {/* Add a CSS class to hide the scrollbar but keep functionality */}
                 {/* Check if productsByLevel[level] exists before mapping over it */}
                 {productsByLevel[level] && productsByLevel[level].map(product => {
                   const isUnlocked = isProductUnlocked(product)
                   const isSoldOut = !product.inStock || soldProducts[product.id];
+                  
+                  // Skip this product if it's sold out and hideOutOfStock is true
+                  if (hideOutOfStock && isSoldOut) {
+                    return null;
+                  }
                   
                   return (
                     <LazySection
@@ -339,7 +380,7 @@ export default function ProductShowcase({ products, availableDrops }: { products
                         if (el) productRefs.current[`${level}-${product.id}`] = el;
                       }}
                       id={`product-${product.id}`}
-                      className="relative z-10 flex justify-center"
+                      className="relative z-10 flex justify-center shrink-0"
                       rootMargin="500px"
                     >
                       <ProductCard 
@@ -357,7 +398,8 @@ export default function ProductShowcase({ products, availableDrops }: { products
               </div>
             </div>
           </div>
-        ))}
+        );
+        })}  {/* Properly close the map function and its callback */}
         {/* Connectors removed as requested */}
       </div>
     </div>

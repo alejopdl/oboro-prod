@@ -65,7 +65,7 @@ export default function Header() {
   return (
     <>
       <motion.header
-        className="w-full flex items-center justify-between border-b border-gray-100/30 dark:border-gray-800/30 fixed top-0 left-0 z-50 blur-container"
+        className="w-full flex items-center justify-between border-b border-gray-200 dark:border-gray-800 fixed top-0 left-0 z-50 bg-white dark:bg-gray-900"
         initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
         animate={{
           opacity: 1,
@@ -90,9 +90,17 @@ export default function Header() {
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-              className="rounded-full w-8 h-8 border-2"
+              className={`rounded-full w-8 h-8 border-2 ${theme === "dark" ? "bg-black border-white" : "bg-white border-black"}`}
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? (
+                <div className="bg-white rounded-full p-0.5">
+                  <Sun className="h-3 w-3 text-black" />
+                </div>
+              ) : (
+                <div className="bg-black rounded-full p-0.5">
+                  <Moon className="h-3 w-3 text-white" />
+                </div>
+              )}
             </Button>
           ) : (
             // Render a placeholder with the same dimensions until mounted
@@ -122,9 +130,20 @@ export default function Header() {
             size="icon"
             onClick={toggleHelp}
             aria-label="Mostrar información de la marca"
-            className="rounded-full w-8 h-8 border-2"
+            className={`rounded-full w-8 h-8 border-2 ${theme === "dark" ? "bg-black border-white" : "bg-white border-black"}`}
+            suppressHydrationWarning
           >
-            <HelpCircle className="h-4 w-4" />
+            <div 
+              className={`rounded-full p-0.5 flex items-center justify-center ${theme === "dark" ? "bg-white" : "bg-black"}`}
+              suppressHydrationWarning
+            >
+              <span 
+                className={`font-bold text-sm ${theme === "dark" ? "text-black" : "text-white"}`}
+                suppressHydrationWarning
+              >
+                ?
+              </span>
+            </div>
           </Button>
         </motion.div>
       </motion.header>
