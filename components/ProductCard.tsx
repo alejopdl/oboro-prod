@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { default as Image } from 'next/image'
+import ImageWithLogoLoading from './image-with-logo-loading'
 import { default as Link } from 'next/link'
 import { motion } from 'framer-motion'
 import { config } from '../data/config'
@@ -53,7 +53,7 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
       className={`group relative ${!soldOut && !locked ? 'bg-gray-800 dark:bg-white ring-4 ring-black dark:ring-white shadow-lg shadow-black/30 dark:shadow-white/30' : 'bg-gray-800/90 dark:bg-white/90'} rounded-lg overflow-hidden transition-all duration-300 ${!soldOut && !locked ? 'shadow-xl' : 'hover:shadow-xl'} w-[320px] sm:w-[380px] md:w-[420px] lg:w-[450px] mt-2`}
     >
       <Link 
-        href={locked ? "#" : `/produto/${id}`} 
+        href={locked ? "#" : `/producto/${id}?dropId=${product.dropId}&level=${product.level}`} 
         className={`block ${locked ? 'pointer-events-none' : ''} h-full flex flex-col`}
         onClick={(e) => {
           if (locked) {
@@ -62,16 +62,15 @@ const ProductCard = ({ product, isActive, panelPosition, index, previousProductS
           }
         }}>
         <div className="relative h-72 sm:h-80 md:h-96 lg:h-[28rem] w-full overflow-hidden flex-shrink-0">
-          <div
-            className={`absolute inset-0 bg-gray-200 dark:bg-gray-700 ${imageLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-          />
-          <Image
+          <ImageWithLogoLoading
             src={images[0] || '/images/placeholder.jpg'}
             alt={name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className={`object-cover object-center group-hover:scale-105 transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoad={() => setImageLoaded(true)}
+            className="object-cover object-center group-hover:scale-105 transition-all duration-500"
+            loaderSize="md"
+            onLoadingComplete={() => setImageLoaded(true)}
+            priority={index === 0} // Prioritize loading the first product
           />
           {soldOut && (
             <div className="absolute inset-0 bg-black bg-opacity-50"></div>

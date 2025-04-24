@@ -40,11 +40,12 @@ A modern, responsive e-commerce product listing website built with Next.js and N
   - Improved image gallery with thumbnails
   - Consistent visual feedback for availability
   - Smooth animations and transitions
-- **Advanced Loading Performance:**
-  - Logo-based loading animations
-  - Enhanced image loading components
-  - Optimized background patterns
-  - Prioritized critical resources
+- **Brand-Consistent Loading System:**
+  - Logo-based loading animations with theme awareness
+  - Enhanced image loading with smooth transitions
+  - Page-level loading states with product skeleton UI
+  - Optimized background patterns and prioritized resources
+  - Favicon and site identity across browsers
 - **Secure product detail pages with blocked product protection**
 - **State preservation when navigating between pages**
 - **Fixed hydration issues with browser extensions**
@@ -154,8 +155,9 @@ The application includes a comprehensive product detail page system with securit
 - **Consistent Visual Style**: Matching the inverted card design (dark in light mode, light in dark mode)
 - **Availability Indicators**: Smiley/sad faces showing product availability status
 - **Enhanced WhatsApp Button**: Improved styling with icon and better visual feedback
-- **SEO Optimization**: Includes metadata and structured data for product pages
+- **SEO Optimization**: Includes metadata, structured data, and favicon for product pages
 - **Error Handling**: Graceful error states with user-friendly messages
+- **Branded Loading Experience**: Consistent logo-based loading animations throughout the site
 
 ### Usage Example
 
@@ -171,6 +173,81 @@ Product detail pages automatically inherit the navigation state from the listing
 <Link href={`/?dropId=${dropId}${level ? `&level=${level}` : ''}`}>
   Volver a la colección
 </Link>
+```
+
+## Loading Animation System
+
+The site features a comprehensive, brand-consistent loading animation system using the oBoRo logo:
+
+### LogoLoading Component
+
+A versatile, theme-aware loading component that displays the oBoRo logo with animations:
+
+```tsx
+// Base loading component that adapts to theme
+import LogoLoading from './components/logo-loading';
+
+// Use the loader with different sizes
+<LogoLoading size="sm" /> // Small for inline use
+<LogoLoading size="md" /> // Medium for general content
+<LogoLoading size="lg" /> // Large for full-page loading
+```
+
+### ImageWithLogoLoading Component
+
+Enhances the Next.js Image component with logo-based loading animation:
+
+```tsx
+// Drop-in replacement for Next.js Image with loading animation
+import ImageWithLogoLoading from './components/image-with-logo-loading';
+
+// Use it just like a regular Next.js Image
+<ImageWithLogoLoading
+  src="/path/to/image.jpg"
+  alt="Product image"
+  fill
+  sizes="(max-width: 768px) 100vw, 50vw"
+  loaderSize="md" // Controls size of the logo loader
+/>
+```
+
+### Page-Level Loading States
+
+Custom loading.tsx files in the app directory provide consistent loading experiences:
+
+```tsx
+// app/loading.tsx - Main page loading with logo animation
+export default function MainPageLoading() {
+  return (
+    <div className="min-h-screen">
+      {/* Page layout with logo loader */}
+      <div className="flex flex-col items-center justify-center py-16">
+        <LogoLoading size="lg" />
+        <p className="text-lg font-medium animate-pulse">
+          Cargando productos...
+        </p>
+      </div>
+      {/* Product skeleton UI */}
+    </div>
+  );
+}
+```
+
+### Favicon and Site Identity
+
+The favicon and web manifest ensure brand consistency in browser tabs and when installed as a PWA:
+
+```tsx
+// In app/layout.tsx - Metadata configuration
+export const metadata = {
+  title: "oBoRo - Exhibición de Productos",
+  description: "Una forma moderna y visualmente cautivadora de explorar artículos únicos",
+  icons: {
+    icon: '/assets/blackIcon.svg',
+    apple: '/assets/blackIcon.svg',
+  },
+  manifest: '/manifest.json'
+};
 ```
 
 ### Security Implementation

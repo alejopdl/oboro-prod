@@ -96,9 +96,24 @@
   - [x] Create logo-based loading animation strategy
   - [x] Design enhanced image loading component
   - [x] Plan performance optimizations for all product views
+
+### Sprint 6: Loading Animation & Performance (Added 2025-04-24)
+
+- [x] Implement logo-based loading animations
+  - [x] Create LogoLoading component with theme-aware design
+  - [x] Implement ImageWithLogoLoading component that extends Next.js Image
+  - [x] Add loading spinner with oBoRo logo to product detail page
+  - [x] Replace standard loading with logo animation on main page
+  - [x] Update product cards to use logo loading for consistent experience
+- [x] Add favicon and metadata
+  - [x] Add oBoRo logo as favicon for all browsers
+  - [x] Create web manifest for progressive web app support
+  - [x] Update metadata in app layout
+- [x] Create page-level loading states
+  - [x] Add main page loading.tsx with product skeleton and logo animation
+  - [x] Update product detail loading.tsx with logo animation 
 - [ ] Create Homepage with featured products
 - [ ] Implement Products listing page
-- [ ] Implement full loading performance optimizations
 
 ## Milestones
 
