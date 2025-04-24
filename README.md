@@ -26,22 +26,41 @@ A modern, responsive e-commerce product listing website built with Next.js and N
 - Server-side data fetching from Notion database
 - Error handling and loading states
 - Product listing and filtering
-- **Drop system with level-based product unlocking**
-- Visual indicators for product availability status with inverted color card design
-- Unique card design: dark in light mode, white in dark mode
-- Subtle glow effect on available products
+- **Enhanced Drop System:**
+  - Level-based product unlocking
+  - **Centralized navigation state management**
+  - **Level-resetting when changing drops**
+  - **Improved scrolling with header offset**
+- Visual indicators for product availability:
+  - Sad face icon for sold-out products
+  - Large lock icon for locked products
+  - Inverted color card design (dark in light mode, white in dark mode)
+- **Enhanced Product Detail Page:**
+  - Matching UI style with product cards (inverted colors)
+  - Improved image gallery with thumbnails
+  - Consistent visual feedback for availability
+  - Smooth animations and transitions
+- **Advanced Loading Performance:**
+  - Logo-based loading animations
+  - Enhanced image loading components
+  - Optimized background patterns
+  - Prioritized critical resources
+- **Secure product detail pages with blocked product protection**
+- **State preservation when navigating between pages**
+- **Fixed hydration issues with browser extensions**
 - WhatsApp integration for purchases
 - Responsive design
-- SEO optimized
+- SEO optimized with structured data
 - Comprehensive test coverage
 
 ## Tech Stack
 
-- Next.js
+- Next.js 15.2.4
 - TypeScript
 - Tailwind CSS
 - Notion API
 - Framer Motion
+- next-themes
 
 ## Testing
 
@@ -121,6 +140,74 @@ const Component = mounted ? motion.div : 'div';
 - Use the mounted state pattern for components that need different rendering behavior on server vs client
 - Include "use client" directive at the top of any component using client-side features
 
+## Product Detail Pages
+
+The application includes a comprehensive product detail page system with security features, state preservation, and enhanced UI:
+
+### Features
+
+- **Direct Notion Integration**: Server components fetch product data directly from Notion
+- **Security Measures**: Prevents access to blocked products with appropriate error messages
+- **State Preservation**: Back button returns users to the same drop and level they were viewing
+- **Enhanced Image Gallery**: Thumbnails for easy navigation between product images
+- **Zoom Functionality**: Click to zoom in/out on product images
+- **Consistent Visual Style**: Matching the inverted card design (dark in light mode, light in dark mode)
+- **Availability Indicators**: Smiley/sad faces showing product availability status
+- **Enhanced WhatsApp Button**: Improved styling with icon and better visual feedback
+- **SEO Optimization**: Includes metadata and structured data for product pages
+- **Error Handling**: Graceful error states with user-friendly messages
+
+### Usage Example
+
+Product detail pages automatically inherit the navigation state from the listing page:
+
+```tsx
+// When clicking a product from the listing
+<Link href={`/producto/${id}?dropId=${product.dropId}&level=${product.level}`}>
+  {/* Product card content */}
+</Link>
+
+// When returning to the listing, state is preserved
+<Link href={`/?dropId=${dropId}${level ? `&level=${level}` : ''}`}>
+  Volver a la colección
+</Link>
+```
+
+### Security Implementation
+
+The product detail system includes security checks to prevent unauthorized access to blocked products:
+
+```typescript
+// Security check example from app/producto/[id]/page.tsx
+async function getProductData(id: string) {
+  try {
+    // Fetch the product
+    const product = await getProductById(id)
+    
+    // If product is not found, return not-found status
+    if (!product) {
+      return { product: null, status: 'not-found' }
+    }
+    
+    // Block access to locked products
+    if (product.blocked) {
+      return { product, status: 'blocked' }
+    }
+    
+    return { product, status: 'success' }
+  } catch (error) {
+    return { product: null, status: 'error' }
+  }
+}
+```
+
+### User Flow
+
+1. User browses products by drop and level
+2. User clicks on an unlocked product
+3. Product detail page loads with full information
+4. User can return to the same drop/level via the back button
+
 ## Logging System
 
 The application includes a flexible logging utility (`lib/logger.ts`) that provides:
@@ -159,7 +246,11 @@ Following a hybrid Next.js structure with both App Router and Pages Router:
 ```
 ├── app/                    # Next.js App Router
 │   ├── layout.tsx          # Root layout component
-│   └── page.tsx            # Homepage component
+│   ├── page.tsx            # Homepage component
+│   ├── producto/[id]/      # Product detail pages
+│   │   ├── page.tsx        # Product detail page component
+│   │   ├── product-blocked.tsx # Blocked product component
+│   │   └── error.tsx       # Error handling component
 │   └── __tests__/          # Tests for app components
 ├── pages/                  # Next.js Pages Router (API routes)
 │   └── api/                # API endpoints
